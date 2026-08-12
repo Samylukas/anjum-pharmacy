@@ -1,22 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    function archiveInvoice(invId) {
-    if (!checkAdminPassword()) return;
-    const inv = savedInvoices.find(i => i.id === invId);
-    if (!inv || inv.status === 'Archived' || inv.status === 'Canceled') return;
-
-    if (confirm(`هل تريد نقل الفاتورة رقم #${invId} للأرشيف وتثبيت أسعارها التاريخية؟`)) {
-        inv.status = 'Archived';
-        saveInvoicesToStorage();
-        
-        // إرسال كائن الفاتورة المكتمل السحابي للأرشيف
-        syncToCloud("archiveInvoice", inv);
-        
-        alert(`تم نقل الفاتورة #${invId} بنجاح إلى جدول الأرشيف السحابي بأسعارها القديمة 📦`);
-        generateReport();
-    }
-}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anjum Green Pharmacy 2026</title>
@@ -831,21 +815,22 @@
         document.getElementById('repNetProfit').textContent = netProfit.toFixed(2) + ' ج.م';
 
         document.getElementById('profitBox').style.display = 'block';
-    }
+  function archiveInvoice(invId) {
+    if (!checkAdminPassword()) return;
+    const inv = savedInvoices.find(i => i.id === invId);
+    if (!inv || inv.status === 'Archived' || inv.status === 'Canceled') return;
 
-    function archiveInvoice(invId) {
-        if (!checkAdminPassword()) return;
-        const inv = savedInvoices.find(i => i.id === invId);
-        if (!inv || inv.status === 'Archived' || inv.status === 'Canceled') return;
-
-        if (confirm(`هل تريد نقل الفاتورة رقم #${invId} للأرشيف وتثبيت أسعارها التاريخية؟`)) {
-            inv.status = 'Archived';
-            saveInvoicesToStorage();
-            syncToCloud("archiveInvoice", inv);
-            alert(`تم نقل الفاتورة #${invId} بنجاح إلى جدول الأرشيف السحابي بأسعارها القديمة 📦`);
-            generateReport();
-        }
+    if (confirm(`هل تريد نقل الفاتورة رقم #${invId} للأرشيف وتثبيت أسعارها التاريخية؟`)) {
+        inv.status = 'Archived';
+        saveInvoicesToStorage();
+        
+        // إرسال كائن الفاتورة المكتمل السحابي للأرشيف
+        syncToCloud("archiveInvoice", inv);
+        
+        alert(`تم نقل الفاتورة #${invId} بنجاح إلى جدول الأرشيف السحابي بأسعارها القديمة 📦`);
+        generateReport();
     }
+}
 
     function cancelInvoice(invId) {
         if (!checkAdminPassword()) return;
