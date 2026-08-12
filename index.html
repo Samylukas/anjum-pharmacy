@@ -607,7 +607,6 @@
         renderStockTable();
     }
 
-    // 1. دالة تعديل اسم وسعر وكمية صنف مع المزامنة
     function editProductSystem(prodName) {
         if (!checkAdminPassword()) return;
 
@@ -636,7 +635,6 @@
         renderStockTable();
     }
 
-    // 2. دالة حذف صنف نهائياً من النظام والجوجل شيت
     function deleteProductSystem(prodName) {
         if (!checkAdminPassword()) return;
 
@@ -815,22 +813,24 @@
         document.getElementById('repNetProfit').textContent = netProfit.toFixed(2) + ' ج.م';
 
         document.getElementById('profitBox').style.display = 'block';
-  function archiveInvoice(invId) {
-    if (!checkAdminPassword()) return;
-    const inv = savedInvoices.find(i => i.id === invId);
-    if (!inv || inv.status === 'Archived' || inv.status === 'Canceled') return;
-
-    if (confirm(`هل تريد نقل الفاتورة رقم #${invId} للأرشيف وتثبيت أسعارها التاريخية؟`)) {
-        inv.status = 'Archived';
-        saveInvoicesToStorage();
-        
-        // إرسال كائن الفاتورة المكتمل السحابي للأرشيف
-        syncToCloud("archiveInvoice", inv);
-        
-        alert(`تم نقل الفاتورة #${invId} بنجاح إلى جدول الأرشيف السحابي بأسعارها القديمة 📦`);
-        generateReport();
     }
-}
+
+    // دالة الأرشفة المحدثة والمثبتة بجدول الأرشيف السحابي
+    function archiveInvoice(invId) {
+        if (!checkAdminPassword()) return;
+        const inv = savedInvoices.find(i => i.id === invId);
+        if (!inv || inv.status === 'Archived' || inv.status === 'Canceled') return;
+
+        if (confirm(`هل تريد نقل الفاتورة رقم #${invId} للأرشيف وتثبيت أسعارها التاريخية؟`)) {
+            inv.status = 'Archived';
+            saveInvoicesToStorage();
+            
+            syncToCloud("archiveInvoice", inv);
+            
+            alert(`تم نقل الفاتورة #${invId} بنجاح إلى جدول الأرشيف السحابي بأسعارها القديمة 📦`);
+            generateReport();
+        }
+    }
 
     function cancelInvoice(invId) {
         if (!checkAdminPassword()) return;
