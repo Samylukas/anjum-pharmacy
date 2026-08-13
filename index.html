@@ -568,7 +568,6 @@
 
         fetchCloudInvoicesData(function() {
             let invDateRaw = document.getElementById('invoiceDate').value;
-            // تنسيق التاريخ والوقت ليظهر بشكل جميل بدون رموز حاسوبية
             let invDate = invDateRaw ? invDateRaw.replace('T', ' ') : new Date().toLocaleString('ar-EG');
 
             let totalSell = 0, totalComm = 0, totalProfit = 0;
@@ -835,13 +834,11 @@
                 return `• ${i.name} [الكمية: ${i.qty} | تجاري: ${(i.commTotal||0).toFixed(1)} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
             }).join('<br>') : '';
 
-            // عرض مفصل لطرق الدفع المقبوضة لكل فاتورة
             const payBreakdown = `$:${u || inv.usd || 0} | €:${eu || inv.eur || 0} | £:${g || inv.gbp || 0} | مصري:${eg || inv.egp || 0} | فيزا:${v || inv.visa || 0}`;
 
             const statusClass = inv.status === 'Canceled' ? 'badge-canceled' : (inv.status === 'Archived' ? 'badge-archived' : 'badge-active');
             const statusLabel = inv.status === 'Canceled' ? 'ملغاة' : (inv.status === 'Archived' ? 'مؤرشفة' : 'مؤكدة');
 
-            // تنسيق التاريخ والوقت ليكون نظيفاً
             const cleanDateStr = inv.date ? inv.date.replace('T', ' ').replace('.000Z', '') : '-';
 
             return `
