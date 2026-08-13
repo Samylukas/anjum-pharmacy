@@ -94,6 +94,7 @@
         <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
             <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 خيارات المزامنة وإعادة الضبط:</div>
             <button class="btn btn-purple" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="syncAllProductsToCloud()">مزامنة جميع الأصناف كلياً ☁️</button>
+            <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">سحب الأرشيف من Google Sheets 🔄</button>
             <button class="btn btn-red" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="resetLocalStorage()">إعادة ضبط الاصناف 🔄</button>
         </div>
 
@@ -299,6 +300,42 @@
     let savedInvoices = [];
     let invoiceCounter = 1001;
 
+    async function fetchCloudInvoicesData() {
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL);
+            const resData = await response.json();
+
+            if (resData && resData.status === "success") {
+                if (resData.nextInvoiceId && resData.nextInvoiceId > invoiceCounter) {
+                    invoiceCounter = resData.nextInvoiceId;
+                    document.getElementById('invNum').textContent = invoiceCounter;
+                }
+
+                if (resData.invoices && resData.invoices.length > 0) {
+                    resData.invoices.forEach(cloudInv => {
+                        if (!savedInvoices.some(i => i.id === cloudInv.id)) {
+                            savedInvoices.push({
+                                id: cloudInv.id,
+                                date: cloudInv.date,
+                                status: cloudInv.status || 'Active',
+                                items: [{ name: cloudInv.itemsText || "تفاصيل محفوظة بجدول الإكسيل", qty: 1 }],
+                                totalComm: cloudInv.totalComm,
+                                totalEGP: cloudInv.totalEGP,
+                                netProfit: cloudInv.netProfit
+                            });
+                        }
+                    });
+                    
+                    savedInvoices.sort((a, b) => a.id - b.id);
+                    saveInvoicesToStorage();
+                    generateReport();
+                }
+            }
+        } catch (e) {
+            console.log("لم يتم السحب اللحظي للفواتير، سيتم الاعتماد على البيانات المحلية.", e);
+        }
+    }
+
     function initSystem() {
         loadDataFromStorage();
         const now = new Date();
@@ -307,6 +344,8 @@
         document.getElementById('invNum').textContent = invoiceCounter;
         renderStockTable();
         generateReport();
+
+        fetchCloudInvoicesData();
     }
 
     function resetLocalStorage() {
@@ -815,7 +854,6 @@
         document.getElementById('profitBox').style.display = 'block';
     }
 
-    // دالة الأرشفة المحدثة والمثبتة بجدول الأرشيف السحابي
     function archiveInvoice(invId) {
         if (!checkAdminPassword()) return;
         const inv = savedInvoices.find(i => i.id === invId);
