@@ -100,7 +100,7 @@
 
         <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px;">
             <div>تاريخ الفاتورة: <input type="datetime-local" id="invoiceDate" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc;"></div>
-            <div>رقم الفاتورة الحقيقي: <span id="invNum" style="color: #1e3c72; font-size: 1.1rem; font-weight: bold;">...</span></div>
+            <div>رقم الفاتورة الحقيقي: <span id="invNum" style="color: #1e3c72; font-size: 1.1rem; font-weight: bold;">جاري السحب...</span></div>
         </div>
 
         <input type="text" id="searchInput" class="search-box" placeholder="ابحث باسم المنتج لإضافته..." oninput="searchProduct()">
@@ -314,7 +314,6 @@
     let savedInvoices = [];
     let invoiceCounter = 1001;
 
-    // المزامنة الفورية السحابية لسحب المنتجات والفواتير المحدثة بدون تكرار
     function fetchCloudInvoicesData(callbackAfter) {
         const oldScript = document.getElementById('cloudSyncScript');
         if (oldScript) oldScript.remove();
@@ -367,16 +366,15 @@
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         const todayStr = now.toISOString().slice(0, 10);
-        const firstDayStr = todayStr.slice(0, 8) + '01';
 
         document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
-        document.getElementById('fromDate').value = firstDayStr;
-        document.getElementById('toDate').value = todayStr;
+        // ترك خانات تاريخ الفلترة فارغة تلقائياً حتى تُعرض كافة الفواتير المسحوبة فوراً
+        document.getElementById('fromDate').value = '';
+        document.getElementById('toDate').value = '';
         
         renderStockTable();
         generateReport();
 
-        // جلب أحدث رقم فاتورة فور فتح الموقع
         fetchCloudInvoicesData();
     }
 
@@ -541,11 +539,9 @@
         });
     }
 
-    // حفظ الفاتورة بعد التأكد المباشر من رقم الفاتورة الحقيقي بالسحابة لمنع التكرار
     function saveInvoice() {
         if (invoiceItems.length === 0) return alert('الرجاء إضافة أصناف للفاتورة أولاً!');
 
-        // جلب أحدث رقم فاتورة من السحابة فوراً قبل الحفظ منعاً للتضارب
         fetchCloudInvoicesData(function() {
             const invDate = document.getElementById('invoiceDate').value;
             let totalSell = 0, totalComm = 0, totalProfit = 0;
