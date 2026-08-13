@@ -260,7 +260,7 @@
 </div>
 
 <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwk8-pXXQ2QULRTDi6exp6iEFR1bhL5R7P0GL0c4ZfRVKiCc2yCBObZsEMOe2bDt-oEUQ/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfmduRVzpx4__r1GkdSLFDAJdarl5elbfenwcGrKU8f5Kdc7yEmClG19eziDtLACQh/exec";
     const ENTRY_PASSWORD = "123";
     const ADMIN_PASSWORD = "852";
     const INVOICE_EDIT_PASSWORD = "753";
@@ -866,14 +866,16 @@
         generateReport();
     }
 
+    // دالة الحذف النهائي المطلق للفاتورة من الصفحة والسحابة
     function cancelInvoiceSystem(invId) {
         if (!checkInvoiceEditPassword()) return;
 
-        const inv = savedInvoices.find(i => i.id === invId);
-        if (!inv || inv.status === 'Canceled') return;
+        const invIdx = savedInvoices.findIndex(i => i.id === invId);
+        if (invIdx === -1) return;
+        const inv = savedInvoices[invIdx];
 
-        if (confirm(`❌ هل أنت متأكد من حذف وإلغاء الفاتورة رقم #${invId}؟ سيتم إرجاع كميات الأصناف للمخزن وتحديث الحسابات.`)) {
-            if (inv.items) {
+        if (confirm(`❌ هل أنت متأكد من حذف وإلغاء الفاتورة رقم #${invId} نهائياً؟ سيتم إرجاع الكميات للمخزن وإزالتها تماماً.`)) {
+            if (inv.items && Array.isArray(inv.items)) {
                 inv.items.forEach(item => {
                     const pObj = products.find(p => p.n === item.name);
                     if (pObj) {
@@ -882,17 +884,15 @@
                     }
                 });
                 saveProductsToStorage();
+                renderStockTable();
             }
 
-            inv.status = 'Canceled';
-            inv.totalEGP = 0;
-            inv.totalComm = 0;
-            inv.netProfit = 0;
-
+            savedInvoices.splice(invIdx, 1);
             saveInvoicesToStorage();
-            syncToCloud("archiveInvoice", inv);
 
-            alert(`🗑️ تم إلغاء الفاتورة #${invId} وإرجاع كمياتها للمخزن وتحديث التقارير!`);
+            syncToCloud("deleteInvoice", { id: invId });
+
+            alert(`🗑️ تم حذف الفاتورة #${invId} نهائياً وإعادتها للمخزن وتحديث الأرشيف!`);
             generateReport();
         }
     }
