@@ -300,11 +300,8 @@
     let savedInvoices = [];
     let invoiceCounter = 1001;
 
-    async function fetchCloudInvoicesData() {
-        try {
-            const response = await fetch(GOOGLE_SCRIPT_URL);
-            const resData = await response.json();
-
+    function fetchCloudInvoicesData() {
+        window.handleCloudInvoicesResponse = function(resData) {
             if (resData && resData.status === "success") {
                 if (resData.nextInvoiceId && resData.nextInvoiceId > invoiceCounter) {
                     invoiceCounter = resData.nextInvoiceId;
@@ -331,9 +328,11 @@
                     generateReport();
                 }
             }
-        } catch (e) {
-            console.log("لم يتم السحب اللحظي للفواتير، سيتم الاعتماد على البيانات المحلية.", e);
-        }
+        };
+
+        const script = document.createElement('script');
+        script.src = GOOGLE_SCRIPT_URL + "?callback=handleCloudInvoicesResponse&ts=" + new Date().getTime();
+        document.body.appendChild(script);
     }
 
     function initSystem() {
