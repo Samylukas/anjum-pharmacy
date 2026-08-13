@@ -96,7 +96,7 @@
         <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
             <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 خيارات المزامنة وأسعار العملات:</div>
             <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">سحب وتحديث البيانات من Google Sheets 🔄</button>
-            <button class="btn btn-purple" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="updateRatesPrompt()">⚙️ ضبط أسعار أسعار العملات</button>
+            <button class="btn btn-purple" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="updateRatesPrompt()">⚙️ ضبط أسعار العملات</button>
         </div>
 
         <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px;">
@@ -361,27 +361,14 @@
                     renderStockTable();
                 }
 
-                if (resData.nextInvoiceId && resData.nextInvoiceId > invoiceCounter) {
+                if (resData.nextInvoiceId) {
                     invoiceCounter = resData.nextInvoiceId;
                     document.getElementById('invNum').textContent = invoiceCounter;
+                    localStorage.setItem('anjum_counter', invoiceCounter.toString());
                 }
 
-                if (resData.invoices && resData.invoices.length > 0) {
-                    resData.invoices.forEach(cloudInv => {
-                        if (!savedInvoices.some(i => i.id === cloudInv.id)) {
-                            savedInvoices.push({
-                                id: cloudInv.id,
-                                date: cloudInv.date,
-                                status: cloudInv.status || 'Active',
-                                items: [{ name: cloudInv.itemsText || "تفاصيل محفوظة بجدول الإكسيل", qty: 1 }],
-                                totalComm: cloudInv.totalComm,
-                                totalEGP: cloudInv.totalEGP,
-                                netProfit: cloudInv.netProfit
-                            });
-                        }
-                    });
-                    
-                    savedInvoices.sort((a, b) => a.id - b.id);
+                if (resData.invoices) {
+                    savedInvoices = resData.invoices;
                     saveInvoicesToStorage();
                     generateReport();
                 }
@@ -392,7 +379,7 @@
 
         const script = document.createElement('script');
         script.id = 'cloudSyncScript';
-        script.src = GOOGLE_SCRIPT_URL + "?callback=handleCloudInvoicesResponse&nocache=" + new Date().getTime();
+        script.src = GOOGLE_SCRIPT_URL + "?callback=handleCloudInvoicesResponse&nocache=" + Math.random();
         document.body.appendChild(script);
     }
 
@@ -405,11 +392,6 @@
         document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
         document.getElementById('fromDate').value = '';
         document.getElementById('toDate').value = '';
-        
-        document.getElementById('invNum').textContent = invoiceCounter;
-        
-        renderStockTable();
-        generateReport();
 
         fetchCloudInvoicesData();
     }
