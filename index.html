@@ -100,7 +100,7 @@
 
         <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px;">
             <div>تاريخ الفاتورة: <input type="datetime-local" id="invoiceDate" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc;"></div>
-            <div>رقم الفاتورة: <span id="invNum" style="color: #1e3c72; font-size: 1.1rem; font-weight: bold;">1001</span></div>
+            <div>رقم الفاتورة الحقيقي: <span id="invNum" style="color: #1e3c72; font-size: 1.1rem; font-weight: bold;">...</span></div>
         </div>
 
         <input type="text" id="searchInput" class="search-box" placeholder="ابحث باسم المنتج لإضافته..." oninput="searchProduct()">
@@ -266,7 +266,6 @@
 
     let isAdminAuth = false;
 
-    // الفوكس التلقائي على خانة كلمة السر أول فتح الصفحة
     window.addEventListener('DOMContentLoaded', () => {
         const passEl = document.getElementById('entryPassInput');
         if (passEl) passEl.focus();
@@ -315,27 +314,24 @@
     let savedInvoices = [];
     let invoiceCounter = 1001;
 
-    // المزامنة الفورية السحابية لسحب المنتجات والفواتير
-    function fetchCloudInvoicesData() {
+    // المزامنة الفورية السحابية لسحب المنتجات والفواتير المحدثة بدون تكرار
+    function fetchCloudInvoicesData(callbackAfter) {
         const oldScript = document.getElementById('cloudSyncScript');
         if (oldScript) oldScript.remove();
 
         window.handleCloudInvoicesResponse = function(resData) {
             if (resData && resData.status === "success") {
-                // 1. سحب المنتجات المحدثة من شيت الإكسيل
                 if (resData.products && resData.products.length > 0) {
                     products = resData.products;
                     saveProductsToStorage();
                     renderStockTable();
                 }
 
-                // 2. تحديث رقم الفاتورة التالي
                 if (resData.nextInvoiceId && resData.nextInvoiceId > invoiceCounter) {
                     invoiceCounter = resData.nextInvoiceId;
                     document.getElementById('invNum').textContent = invoiceCounter;
                 }
 
-                // 3. دمج وسحب الأرشيف والفواتير
                 if (resData.invoices && resData.invoices.length > 0) {
                     resData.invoices.forEach(cloudInv => {
                         if (!savedInvoices.some(i => i.id === cloudInv.id)) {
@@ -355,6 +351,8 @@
                     saveInvoicesToStorage();
                     generateReport();
                 }
+
+                if (callbackAfter) callbackAfter();
             }
         };
 
@@ -374,22 +372,12 @@
         document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
         document.getElementById('fromDate').value = firstDayStr;
         document.getElementById('toDate').value = todayStr;
-        document.getElementById('invNum').textContent = invoiceCounter;
         
         renderStockTable();
         generateReport();
 
+        // جلب أحدث رقم فاتورة فور فتح الموقع
         fetchCloudInvoicesData();
-    }
-
-    function resetLocalStorage() {
-        if (!checkAdminPassword()) return;
-        if (confirm('هل تريد إعادة ضبط الأصناف وسحب القائمة من Google Sheets؟')) {
-            localStorage.removeItem('anjum_products');
-            localStorage.removeItem('anjum_invoices');
-            localStorage.removeItem('anjum_counter');
-            fetchCloudInvoicesData();
-        }
     }
 
     function loadDataFromStorage() {
@@ -553,61 +541,48 @@
         });
     }
 
-    async function syncAllProductsToCloud() {
-        if (!checkAdminPassword()) return;
-
-        try {
-            alert('⏳ جاري البدء في رفع ومزامنة الأصناف لجدول المنتجات... يرجى الانتظار ثوانٍ.');
-
-            await fetch(GOOGLE_SCRIPT_URL, {
-                method: "POST", mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "syncFullProducts", data: products })
-            });
-
-            alert('✅ تم المزامنة والرفع بنجاح لجميع الأصناف لجدول المنتجات السحابي!');
-        } catch (e) {
-            alert('❌ حدث خطأ أثناء المزامنة، يرجى التأكد من الاتصال بالإنترنت.');
-            console.error(e);
-        }
-    }
-
+    // حفظ الفاتورة بعد التأكد المباشر من رقم الفاتورة الحقيقي بالسحابة لمنع التكرار
     function saveInvoice() {
         if (invoiceItems.length === 0) return alert('الرجاء إضافة أصناف للفاتورة أولاً!');
 
-        const invDate = document.getElementById('invoiceDate').value;
-        let totalSell = 0, totalComm = 0, totalProfit = 0;
+        // جلب أحدث رقم فاتورة من السحابة فوراً قبل الحفظ منعاً للتضارب
+        fetchCloudInvoicesData(function() {
+            const invDate = document.getElementById('invoiceDate').value;
+            let totalSell = 0, totalComm = 0, totalProfit = 0;
 
-        invoiceItems.forEach(i => {
-            totalSell += i.sellTotal;
-            totalComm += i.commTotal;
-            totalProfit += i.netProfit;
+            invoiceItems.forEach(i => {
+                totalSell += i.sellTotal;
+                totalComm += i.commTotal;
+                totalProfit += i.netProfit;
 
-            const pObj = products.find(p => p.n === i.name);
-            if (pObj) {
-                syncToCloud("updateSingleProduct", pObj);
-            }
+                const pObj = products.find(p => p.n === i.name);
+                if (pObj) {
+                    syncToCloud("updateSingleProduct", pObj);
+                }
+            });
+
+            const finalInvId = invoiceCounter;
+            const savedInv = {
+                id: finalInvId,
+                date: invDate,
+                status: 'Active',
+                items: JSON.parse(JSON.stringify(invoiceItems)),
+                totalComm: totalComm,
+                totalEGP: totalSell,
+                netProfit: totalProfit
+            };
+
+            savedInvoices.push(savedInv);
+            invoiceCounter++;
+            saveInvoicesToStorage();
+
+            syncToCloud("saveInvoice", savedInv);
+
+            alert(`تم حفظ الفاتورة #${finalInvId} وتحديث رصيد جدول المنتجات السحابي بنجاح 💾☁️`);
+            invoiceItems = [];
+            renderInvoice();
+            document.getElementById('invNum').textContent = invoiceCounter;
         });
-
-        const savedInv = {
-            id: invoiceCounter++,
-            date: invDate,
-            status: 'Active',
-            items: JSON.parse(JSON.stringify(invoiceItems)),
-            totalComm: totalComm,
-            totalEGP: totalSell,
-            netProfit: totalProfit
-        };
-
-        savedInvoices.push(savedInv);
-        saveInvoicesToStorage();
-
-        syncToCloud("saveInvoice", savedInv);
-
-        alert('تم حفظ الفاتورة وتحديث رصيد جدول المنتجات السحابي بالخصم بنجاح 💾☁️');
-        invoiceItems = [];
-        renderInvoice();
-        document.getElementById('invNum').textContent = invoiceCounter;
     }
 
     function addNewProductToSystem() {
@@ -616,13 +591,19 @@
         const qty = parseInt(document.getElementById('newProdQty').value) || 0;
 
         if (!name) return alert('أدخل اسم المنتج!');
-        const newProd = { n: name, p: price, q: qty };
-        products.push(newProd);
+        
+        const existing = products.find(p => p.n.toLowerCase() === name.toLowerCase());
+        if (existing) {
+            existing.p = price;
+            existing.q += qty;
+        } else {
+            products.push({ n: name, p: price, q: qty });
+        }
+        
         saveProductsToStorage();
+        syncToCloud("updateSingleProduct", { n: name, p: price, q: existing ? existing.q : qty });
 
-        syncToCloud("updateSingleProduct", newProd);
-
-        alert(`تم إضافة المنتج (${name}) وتحديث جدول المنتجات السحابي! ☁️`);
+        alert(`تم تحديث وإرسال المنتج (${name}) للجدول السحابي بدون تكرار! ☁️`);
         document.getElementById('newProdName').value = '';
     }
 
