@@ -94,8 +94,9 @@
         <div class="section-title">🛒 إنشاء فاتورة بيع جديدة</div>
 
         <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
-            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 خيارات المزامنة والسحب السحابي:</div>
+            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 خيارات المزامنة وأسعار العملات:</div>
             <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">سحب وتحديث البيانات من Google Sheets 🔄</button>
+            <button class="btn btn-purple" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="updateRatesPrompt()">⚙️ ضبط أسعار أسعار العملات</button>
         </div>
 
         <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px;">
@@ -121,11 +122,11 @@
 
             <p style="font-size: 0.85rem; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 8px;">أدخل السعر اليدوي المباشر حسب العملة:</p>
             <div class="payment-grid">
-                <div class="pay-box"><label>دولار ($ × 50)</label><input type="number" id="pUSD" value="0" oninput="checkPriceAlert()"></div>
-                <div class="pay-box"><label>يورو (€ × 60)</label><input type="number" id="pEUR" value="0" oninput="checkPriceAlert()"></div>
-                <div class="pay-box"><label>إسترليني (£ × 70)</label><input type="number" id="pGBP" value="0" oninput="checkPriceAlert()"></div>
-                <div class="pay-box"><label>مصري (EGP)</label><input type="number" id="pEGP" value="0" oninput="checkPriceAlert()"></div>
-                <div class="pay-box" style="grid-column: span 2;"><label>فيزا (Visa EGP)</label><input type="number" id="pVISA" value="0" oninput="checkPriceAlert()"></div>
+                <div class="pay-box"><label id="lblUSD">دولار ($ × 50)</label><input type="number" id="pUSD" value="0" oninput="checkPriceAlert()"></div>
+                <div class="pay-box"><label id="lblEUR">يورو (€ × 60)</label><input type="number" id="pEUR" value="0" oninput="checkPriceAlert()"></div>
+                <div class="pay-box"><label id="lblGBP">إسترليني (£ × 70)</label><input type="number" id="pGBP" value="0" oninput="checkPriceAlert()"></div>
+                <div class="pay-box"><label id="lblEGP">مصري (EGP)</label><input type="number" id="pEGP" value="0" oninput="checkPriceAlert()"></div>
+                <div class="pay-box" style="grid-column: span 2;"><label id="lblVISA">فيزا (Visa EGP)</label><input type="number" id="pVISA" value="0" oninput="checkPriceAlert()"></div>
             </div>
 
             <div id="priceWarningBox" class="warning-box">
@@ -259,7 +260,6 @@
 </div>
 
 <script>
-    // الرابط السحابي المحدث والنهائي الخاص بك
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwk8-pXXQ2QULRTDi6exp6iEFR1bhL5R7P0GL0c4ZfRVKiCc2yCBObZsEMOe2bDt-oEUQ/exec";
     const ENTRY_PASSWORD = "123";
     const ADMIN_PASSWORD = "852";
@@ -306,7 +306,41 @@
         }
     }
 
-    const RATES = { USD: 50, EUR: 60, GBP: 70, EGP: 1, VISA: 1 };
+    let RATES = { USD: 50, EUR: 60, GBP: 70, EGP: 1, VISA: 1 };
+
+    function loadRatesFromStorage() {
+        const savedRates = localStorage.getItem('anjum_rates');
+        if (savedRates) {
+            RATES = JSON.parse(savedRates);
+        }
+        updateRateLabels();
+    }
+
+    function updateRateLabels() {
+        if(document.getElementById('lblUSD')) document.getElementById('lblUSD').textContent = `دولار ($ × ${RATES.USD})`;
+        if(document.getElementById('lblEUR')) document.getElementById('lblEUR').textContent = `يورو (€ × ${RATES.EUR})`;
+        if(document.getElementById('lblGBP')) document.getElementById('lblGBP').textContent = `إسترليني (£ × ${RATES.GBP})`;
+        if(document.getElementById('lblVISA')) document.getElementById('lblVISA').textContent = `فيزا (Visa × ${RATES.VISA})`;
+    }
+
+    function updateRatesPrompt() {
+        if (!checkAdminPassword()) return;
+
+        const newUSD = parseFloat(prompt("💵 أدخل سعر صرف الدولار ($) مقابل الجنيه:", RATES.USD)) || RATES.USD;
+        const newEUR = parseFloat(prompt("💶 أدخل سعر صرف اليورو (€) مقابل الجنيه:", RATES.EUR)) || RATES.EUR;
+        const newGBP = parseFloat(prompt("💷 أدخل سعر صرف الإسترليني (£) مقابل الجنيه:", RATES.GBP)) || RATES.GBP;
+        const newVISA = parseFloat(prompt("💳 أدخل معامل ضرب الفيزا (افتراضي 1):", RATES.VISA)) || RATES.VISA;
+
+        RATES.USD = newUSD;
+        RATES.EUR = newEUR;
+        RATES.GBP = newGBP;
+        RATES.VISA = newVISA;
+
+        localStorage.setItem('anjum_rates', JSON.stringify(RATES));
+        updateRateLabels();
+        checkPriceAlert();
+        alert('✅ تم تحديث وحفظ أسعار صرف العملات بنجاح!');
+    }
 
     let products = [];
     let selectedProd = null;
@@ -364,6 +398,7 @@
 
     function initSystem() {
         loadDataFromStorage();
+        loadRatesFromStorage();
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
 
