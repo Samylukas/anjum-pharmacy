@@ -223,17 +223,22 @@
             <div>من تاريخ: <input type="date" id="fromDate"></div>
             <div>إلى تاريخ: <input type="date" id="toDate"></div>
             <button class="btn btn-blue" style="width: auto; margin-top: 0;" onclick="generateReport()">عرض الفلترة 📈</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="calculateNetProfit()">📊 حساب صافي الربح 💵</button>
+            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="calculateNetProfit()">📊 حساب صافي الربح والعملات 💵</button>
             <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="printReportTable()">طباعة 🖨️</button>
             <button class="btn btn-orange" style="width: auto; margin-top: 0;" onclick="exportReportPDF()">تصدير PDF 📄</button>
             <button class="btn btn-blue" style="width: auto; margin-top: 0; background:#27ae60;" onclick="exportReportToCSV()">تصدير CSV 💾</button>
         </div>
 
         <div id="profitBox" class="totals-box" style="display:none; background:#1e3c72; margin-bottom:15px;">
-            <h3 style="text-align:center; margin-bottom:10px;">💵 التقرير المالي وصافي الأرباح للفترة المحددة</h3>
+            <h3 style="text-align:center; margin-bottom:10px;">💵 التقرير المالي المجمع والعملات للفترة المحددة</h3>
             <div class="totals-grid">
-                <div class="total-item">إجمالي المبيعات (سعر البيع) <span id="repTotalSell">0.00 ج.م</span></div>
-                <div class="total-item">إجمالي التكلفة (السعر التجاري) <span id="repTotalComm">0.00 ج.م</span></div>
+                <div class="total-item">إجمالي المقبوض ($) <span id="repTotalUSD">$0.00</span></div>
+                <div class="total-item">إجمالي المقبوض (€) <span id="repTotalEUR">€0.00</span></div>
+                <div class="total-item">إجمالي المقبوض (£) <span id="repTotalGBP">£0.00</span></div>
+                <div class="total-item">إجمالي المقبوض (EGP) <span id="repTotalEGP">0.00 ج.م</span></div>
+                <div class="total-item">إجمالي الفيزا (Visa) <span id="repTotalVISA">0.00 ج.م</span></div>
+                <div class="total-item" style="background:rgba(46,204,113,0.2);">إجمالي المبيعات كلياً <span id="repTotalSell">0.00 ج.م</span></div>
+                <div class="total-item" style="background:rgba(231,76,60,0.2);">إجمالي التكلفة التجاري <span id="repTotalComm">0.00 ج.م</span></div>
                 <div class="total-item" style="background:#27ae60; grid-column: span 2;">صافي الأرباح المتبقية <span id="repNetProfit" style="font-size:1.1rem; color:#fff;">0.00 ج.م</span></div>
             </div>
         </div>
@@ -243,17 +248,18 @@
                 <tr>
                     <th style="width:35px;">م</th>
                     <th>رقم الفاتورة</th>
-                    <th>التاريخ والوقت</th>
+                    <th>تاريخ الفاتورة الفعلي</th>
                     <th>الحالة</th>
-                    <th>الأصناف والتفاصيل (الكمية - تجاري - بيع)</th>
+                    <th>تفاصيل الأصناف المباعة</th>
+                    <th>طرق الدفع والعملات المقبوضة</th>
                     <th>إجمالي التجاري</th>
-                    <th>إجمالي البيع</th>
+                    <th>إجمالي البيع (EGP)</th>
                     <th>صافي الربح</th>
                     <th style="width:140px;">الإجراءات والأرشفة</th>
                 </tr>
             </thead>
             <tbody id="savedInvoicesBody">
-                <tr><td colspan="9" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>
+                <tr><td colspan="10" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>
             </tbody>
         </table></div>
     </div>
@@ -561,7 +567,10 @@
         if (invoiceItems.length === 0) return alert('الرجاء إضافة أصناف للفاتورة أولاً!');
 
         fetchCloudInvoicesData(function() {
-            const invDate = document.getElementById('invoiceDate').value;
+            let invDateRaw = document.getElementById('invoiceDate').value;
+            // تنسيق التاريخ والوقت ليظهر بشكل جميل بدون رموز حاسوبية
+            let invDate = invDateRaw ? invDateRaw.replace('T', ' ') : new Date().toLocaleString('ar-EG');
+
             let totalSell = 0, totalComm = 0, totalProfit = 0;
 
             invoiceItems.forEach(i => {
@@ -777,7 +786,7 @@
         win.document.write('</head><body><h2>🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف</h2><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الحالة</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع</th><th>صافي الربح</th></tr></thead><tbody>');
         filteredInvoices.forEach((inv, idx) => {
             const itemsList = inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(', ') : '';
-            win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' '):''}</td><td>${inv.status}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
+            win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td>${inv.status}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
         });
         win.document.write('</tbody></table></body></html>');
         win.document.close();
@@ -811,25 +820,38 @@
 
         const tbody = document.getElementById('savedInvoicesBody');
         if (filteredInvoices.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>';
             return;
         }
 
         tbody.innerHTML = filteredInvoices.map((inv, index) => {
-            const itemsList = inv.items ? inv.items.map(i => 
-                `• ${i.name} [الكمية: ${i.qty} | تجاري: ${(i.commTotal||0).toFixed(1)} | بيع: ${(i.sellTotal||0).toFixed(1)}]`
-            ).join('<br>') : '';
+            let u = 0, eu = 0, g = 0, eg = 0, v = 0;
+            const itemsList = inv.items ? inv.items.map(i => {
+                u += parseFloat(i.usd || 0);
+                eu += parseFloat(i.eur || 0);
+                g += parseFloat(i.gbp || 0);
+                eg += parseFloat(i.egp || 0);
+                v += parseFloat(i.visa || 0);
+                return `• ${i.name} [الكمية: ${i.qty} | تجاري: ${(i.commTotal||0).toFixed(1)} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
+            }).join('<br>') : '';
+
+            // عرض مفصل لطرق الدفع المقبوضة لكل فاتورة
+            const payBreakdown = `$:${u || inv.usd || 0} | €:${eu || inv.eur || 0} | £:${g || inv.gbp || 0} | مصري:${eg || inv.egp || 0} | فيزا:${v || inv.visa || 0}`;
 
             const statusClass = inv.status === 'Canceled' ? 'badge-canceled' : (inv.status === 'Archived' ? 'badge-archived' : 'badge-active');
             const statusLabel = inv.status === 'Canceled' ? 'ملغاة' : (inv.status === 'Archived' ? 'مؤرشفة' : 'مؤكدة');
+
+            // تنسيق التاريخ والوقت ليكون نظيفاً
+            const cleanDateStr = inv.date ? inv.date.replace('T', ' ').replace('.000Z', '') : '-';
 
             return `
             <tr>
                 <td><span class="seq-num">${index + 1}</span></td>
                 <td style="font-weight:bold;">#${inv.id}</td>
-                <td style="white-space:nowrap;">${inv.date ? inv.date.replace('T', ' ') : '-'}</td>
+                <td style="white-space:nowrap;">${cleanDateStr}</td>
                 <td><span class="${statusClass}">${statusLabel}</span></td>
                 <td style="text-align:right; font-size:0.75rem; line-height:1.4;">${itemsList}</td>
+                <td style="font-size:0.72rem; color:#2c3e50;">${payBreakdown}</td>
                 <td style="color:#2c3e50; white-space:nowrap;">${(inv.totalComm || 0).toFixed(2)} ج.م</td>
                 <td style="color:#27ae60; font-weight:bold; white-space:nowrap;">${(inv.totalEGP || 0).toFixed(2)} ج.م</td>
                 <td style="color:#8e44ad; font-weight:bold; white-space:nowrap;">${(inv.netProfit || ((inv.totalEGP || 0) - (inv.totalComm || 0))).toFixed(2)} ج.م</td>
@@ -866,7 +888,6 @@
         generateReport();
     }
 
-    // دالة الحذف النهائي المطلق للفاتورة من الصفحة والسحابة
     function cancelInvoiceSystem(invId) {
         if (!checkInvoiceEditPassword()) return;
 
@@ -913,11 +934,35 @@
         });
 
         let totalSell = 0, totalComm = 0, netProfit = 0;
+        let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0;
+
         filteredInvoices.forEach(inv => {
             totalSell += inv.totalEGP || 0;
             totalComm += inv.totalComm || 0;
             netProfit += inv.netProfit || ((inv.totalEGP || 0) - (inv.totalComm || 0));
+
+            if (inv.items && Array.isArray(inv.items)) {
+                inv.items.forEach(i => {
+                    sumUSD += parseFloat(i.usd || 0);
+                    sumEUR += parseFloat(i.eur || 0);
+                    sumGBP += parseFloat(i.gbp || 0);
+                    sumEGP += parseFloat(i.egp || 0);
+                    sumVISA += parseFloat(i.visa || 0);
+                });
+            } else {
+                sumUSD += parseFloat(inv.usd || 0);
+                sumEUR += parseFloat(inv.eur || 0);
+                sumGBP += parseFloat(inv.gbp || 0);
+                sumEGP += parseFloat(inv.egp || 0);
+                sumVISA += parseFloat(inv.visa || 0);
+            }
         });
+
+        document.getElementById('repTotalUSD').textContent = '$' + sumUSD.toFixed(2);
+        document.getElementById('repTotalEUR').textContent = '€' + sumEUR.toFixed(2);
+        document.getElementById('repTotalGBP').textContent = '£' + sumGBP.toFixed(2);
+        document.getElementById('repTotalEGP').textContent = sumEGP.toFixed(2) + ' ج.م';
+        document.getElementById('repTotalVISA').textContent = sumVISA.toFixed(2) + ' ج.م';
 
         document.getElementById('repTotalSell').textContent = totalSell.toFixed(2) + ' ج.م';
         document.getElementById('repTotalComm').textContent = totalComm.toFixed(2) + ' ج.م';
@@ -945,10 +990,14 @@
     function exportReportToCSV() {
         if (savedInvoices.length === 0) return alert('لا توجد فواتير لتصديرها!');
 
-        let csvContent = "\uFEFFم,رقم الفاتورة,التاريخ والوقت,الحالة,الأصناف,إجمالي التجاري,إجمالي البيع,صافي الربح\n";
+        let csvContent = "\uFEFFم,رقم الفاتورة,تاريخ الفاتورة,الحالة,الأصناف,دولار,يورو,إسترليني,مصري,فيزا,إجمالي التجاري,إجمالي البيع,صافي الربح\n";
         savedInvoices.forEach((inv, idx) => {
             const itemsStr = inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(' + ') : '';
-            csvContent += `"${idx+1}","${inv.id}","${inv.date.replace('T', ' ')}","${inv.status}","${itemsStr}","${inv.totalComm||0}","${inv.totalEGP||0}","${inv.netProfit||0}"\n`;
+            let u = 0, eu = 0, g = 0, eg = 0, v = 0;
+            if (inv.items && Array.isArray(inv.items)) {
+                inv.items.forEach(i => { u += i.usd||0; eu += i.eur||0; g += i.gbp||0; eg += i.egp||0; v += i.visa||0; });
+            }
+            csvContent += `"${idx+1}","${inv.id}","${inv.date}","${inv.status}","${itemsStr}","${u}","${eu}","${g}","${eg}","${v}","${inv.totalComm||0}","${inv.totalEGP||0}","${inv.netProfit||0}"\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
