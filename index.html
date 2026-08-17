@@ -966,7 +966,7 @@
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>طباعة التقرير المالي</title>');
         win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #333;padding:6px;font-weight:bold;}</style>');
-        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات والأرشيف المالي</h3><p>' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
+        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات </h3><p>' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
             const itemsList = inv.items ? inv.items.map(i => `${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`).join(' | ') : cleanItemSummaryText(inv.itemsText);
