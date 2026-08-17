@@ -1099,7 +1099,7 @@
                     g += parseFloat(i.gbp || 0);
                     eg += parseFloat(i.egp || 0);
                     v += parseFloat(i.visa || 0);
-                    return `• ${i.name} [الكمية: ${i.qty} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
+                    return `• ${i.name} &rlm;(العدد: ${i.qty} - بيع: ${(i.sellTotal||0).toFixed(1)} ج.م)&rlm;`;
                 }).join('<br>');
             } else {
                 itemsList = cleanItemSummaryText(inv.itemsText).split(' | ').map(item => `• ${item}`).join('<br>');
@@ -1200,7 +1200,7 @@
                     g += parseFloat(i.gbp || 0);
                     eg += parseFloat(i.egp || 0);
                     v += parseFloat(i.visa || 0);
-                    return `• ${i.name} [الكمية: ${i.qty} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
+                    return `• ${i.name} &rlm;(العدد: ${i.qty} - بيع: ${(i.sellTotal||0).toFixed(1)} ج.م)&rlm;`;
                 }).join('<br>');
             } else {
                 itemsList = cleanItemSummaryText(inv.itemsText).split(' | ').map(item => `• ${item}`).join('<br>');
