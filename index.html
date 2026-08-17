@@ -966,7 +966,7 @@
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>طباعة التقرير المالي</title>');
         win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #333;padding:6px;font-weight:bold;}</style>');
-        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات والأرشيف المالي</h3><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
+        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات والأرشيف المالي</h3><p>' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
             const itemsList = inv.items ? inv.items.map(i => `${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`).join(' | ') : cleanItemSummaryText(inv.itemsText);
@@ -1009,7 +1009,7 @@
         setTimeout(() => win.print(), 300);
     }
 
-    // دالة تصدير الـ PDF المعدلة نهائياً (فصل العناوين لمنع التداخل تماماً)
+    // دالة تصدير الـ PDF بدون تداخل العناوين وبدون عبارة "تاريخ التصدير:"
     function exportReportPDF() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -1055,9 +1055,9 @@
 
         let htmlContent = `
             <div style="text-align:center; margin-bottom:15px; border-bottom:2px solid #1e3c72; padding-bottom:8px;">
-                <div style="font-size:20px; font-weight:bold; color:#1e3c72; margin-bottom:4px; line-height:1.2;">Anjum Green Pharmacy 🌿</div>
-                <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:4px; line-height:1.2;">تقرير المبيعات والأرشيف المالي</div>
-                <div style="font-size:10px; color:#666;">تاريخ التصدير: ${new Date().toLocaleString('ar-EG')}</div>
+                <div style="font-size:20px; font-weight:bold; color:#1e3c72; margin-bottom:6px;">Anjum Green Pharmacy 🌿</div>
+                <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:6px;">تقرير المبيعات والأرشيف المالي</div>
+                <div style="font-size:11px; color:#555;">${new Date().toLocaleString('ar-EG')}</div>
             </div>
             
             <table style="width:100%; border-collapse:collapse; margin-bottom:15px; background:#fff;">
