@@ -682,6 +682,20 @@
         });
     }
 
+    // تحديد صياغة سعر البيع بحسب العملة الفعلية وبدون أقواس مطلقاً
+    function getItemPaidText(item) {
+        if (!item) return '';
+        let paidParts = [];
+        if (item.usd > 0) paidParts.push(`${item.usd} $`);
+        if (item.eur > 0) paidParts.push(`${item.eur} €`);
+        if (item.gbp > 0) paidParts.push(`${item.gbp} £`);
+        if (item.egp > 0) paidParts.push(`${item.egp} ج.م`);
+        if (item.visa > 0) paidParts.push(`${item.visa} Visa`);
+
+        let paidStr = paidParts.length > 0 ? paidParts.join(" - ") : `${(item.sellTotal||0).toFixed(1)} ج.م`;
+        return `${item.name} | العدد: ${item.qty} | بيع: ${paidStr}`;
+    }
+
     function saveInvoice() {
         if (invoiceItems.length === 0) return alert('الرجاء إضافة أصناف للفاتورة أولاً!');
 
@@ -695,8 +709,7 @@
             totalSell += i.sellTotal;
             totalComm += i.commTotal;
             totalProfit += i.netProfit;
-            // استخدام رمز RLM لمنع انقشاع أو انقلاب الأقواس
-            itemsSummaryText.push(`${i.name} &rlm;(العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)&rlm;`);
+            itemsSummaryText.push(getItemPaidText(i));
 
             const pObj = products.find(p => p.n === i.name);
             if (pObj) syncToCloud("updateSingleProduct", pObj);
@@ -909,16 +922,16 @@
         const win = window.open('', '', 'height=600,width=400');
         win.document.write('<html><head><title>إيصال بيع #' + inv.id + '</title>');
         win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:10px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:4px;font-size:11px;} th{background:#1e3c72;color:#fff;}</style>');
-        win.document.write('</head><body><h3 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h3><p>فاتورة بيع رقم: <b>#' + inv.id + '</b></p><p>التاريخ: ' + (inv.date||'').replace('T', ' ').replace('.000Z', '') + '</p><table><thead><tr><th>الصنف</th><th>الكمية والتفاصيل</th></tr></thead><tbody>');
+        win.document.write('</head><body><h3 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h3><p>فاتورة بيع رقم: <b>#' + inv.id + '</b></p><p>التاريخ: ' + (inv.date||'').replace('T', ' ').replace('.000Z', '') + '</p><table><thead><tr><th>الصنف والتفاصيل</th></tr></thead><tbody>');
         
         if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
             inv.items.forEach(i => {
-                win.document.write(`<tr><td style="text-align:right;">${i.name}</td><td>العدد: ${i.qty} - بيع: ${i.sellTotal.toFixed(2)} ج.م</td></tr>`);
+                win.document.write(`<tr><td style="text-align:right;">• ${getItemPaidText(i)}</td></tr>`);
             });
         } else {
             let itemsArray = cleanItemSummaryText(inv.itemsText).split(' | ');
             itemsArray.forEach(itm => {
-                win.document.write(`<tr><td colspan="2" style="text-align:right;">• ${itm}</td></tr>`);
+                win.document.write(`<tr><td style="text-align:right;">• ${itm.replace(/\(|\)/g, '')}</td></tr>`);
             });
         }
 
@@ -970,7 +983,7 @@
         win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات والأرشيف المالي</h3><p>' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
-            const itemsList = inv.items ? inv.items.map(i => `${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`).join(' | ') : cleanItemSummaryText(inv.itemsText);
+            const itemsList = inv.items ? inv.items.map(i => getItemPaidText(i)).join(' | ') : cleanItemSummaryText(inv.itemsText).replace(/\(|\)/g, '');
             win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
         });
 
@@ -1010,7 +1023,7 @@
         setTimeout(() => win.print(), 300);
     }
 
-    // دالة تصدير الـ PDF - مصلحة بالكامل لمنع عكس أو انقلاب الأقواس
+    // تصدير الـ PDF بدون أقواس نهائياً وعرض سعر البيع بالعملة المحددة لكل صنف
     function exportReportPDF() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -1079,7 +1092,7 @@
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">م</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">رقم الفاتورة</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">التاريخ</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">تفاصيل الأصناف المباعة</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">تفاصيل الأصناف المباعة والأسعار</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">طرق الدفع والعملات</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">إجمالي التجاري</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">إجمالي البيع (EGP)</th>
@@ -1100,11 +1113,10 @@
                     g += parseFloat(i.gbp || 0);
                     eg += parseFloat(i.egp || 0);
                     v += parseFloat(i.visa || 0);
-                    // إضافة رمز RLM لمنع اعتلاء وانقلاب الأقواس عند تحويل النص لـ PDF
-                    return `• ${i.name} &rlm;(العدد: ${i.qty} - بيع: ${(i.sellTotal||0).toFixed(1)} ج.م)&rlm;`;
+                    return `• ${getItemPaidText(i)}`;
                 }).join('<br>');
             } else {
-                itemsList = cleanItemSummaryText(inv.itemsText).split(' | ').map(item => `• ${item}`).join('<br>');
+                itemsList = cleanItemSummaryText(inv.itemsText).replace(/\(|\)/g, '').split(' | ').map(item => `• ${item}`).join('<br>');
                 u = inv.usd || 0; eu = inv.eur || 0; g = inv.gbp || 0; eg = inv.egp || 0; v = inv.visa || 0;
             }
 
@@ -1202,10 +1214,10 @@
                     g += parseFloat(i.gbp || 0);
                     eg += parseFloat(i.egp || 0);
                     v += parseFloat(i.visa || 0);
-                    return `• ${i.name} &rlm;(العدد: ${i.qty} - بيع: ${(i.sellTotal||0).toFixed(1)} ج.م)&rlm;`;
+                    return `• ${getItemPaidText(i)}`;
                 }).join('<br>');
             } else {
-                itemsList = cleanItemSummaryText(inv.itemsText).split(' | ').map(item => `• ${item}`).join('<br>');
+                itemsList = cleanItemSummaryText(inv.itemsText).replace(/\(|\)/g, '').split(' | ').map(item => `• ${item}`).join('<br>');
                 u = inv.usd || 0; eu = inv.eur || 0; g = inv.gbp || 0; eg = inv.egp || 0; v = inv.visa || 0;
             }
 
