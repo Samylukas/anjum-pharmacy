@@ -682,7 +682,7 @@
         });
     }
 
-    // تحديد صياغة سعر البيع بحسب العملة الفعلية وبدون أقواس مطلقاً
+    // تفقيط سعر البيع بالعملة المحددة وبفواصل صريحة | بدون أقواس
     function getItemPaidText(item) {
         if (!item) return '';
         let paidParts = [];
@@ -1023,7 +1023,7 @@
         setTimeout(() => win.print(), 300);
     }
 
-    // تصدير الـ PDF بدون أقواس نهائياً وعرض سعر البيع بالعملة المحددة لكل صنف
+    // دالة تصدير الـ PDF - ضبط حظر انقسام الصفوف عبر فواصل الصفحات تلقائياً
     function exportReportPDF() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -1123,8 +1123,9 @@
             const payBreakdown = `$:${u} | €:${eu} | £:${g} | مصري:${eg} | فيزا:${v}`;
             const cleanDateStr = inv.date ? inv.date.replace('T', ' ').replace('.000Z', '') : '-';
 
+            // إضافة خاصية page-break-inside: avoid لمنع قص قطع أسطر الفاتورة بين الصفحات
             htmlContent += `
-                <tr>
+                <tr style="page-break-inside: avoid;">
                     <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px;">${index + 1}</td>
                     <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold;">#${inv.id}</td>
                     <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; white-space:nowrap;">${cleanDateStr}</td>
@@ -1141,7 +1142,7 @@
                 </tbody>
             </table>
 
-            <div style="margin-top:15px; background:#ffffff; color:#333; border:2px solid #1e3c72; border-radius:6px; padding:8px;">
+            <div style="margin-top:15px; background:#ffffff; color:#333; border:2px solid #1e3c72; border-radius:6px; padding:8px; page-break-inside: avoid;">
                 <h3 style="text-align:center; font-size:11px; margin:0 0 6px 0; color:#1e3c72;">💵 التقرير المالي المجمع والعملات للتقرير</h3>
                 <table style="width:100%; border-collapse:collapse; text-align:center; font-size:9px; background:#fff;">
                     <thead>
@@ -1179,7 +1180,8 @@
             filename:     `Anjum_Green_Pharmacy_Full_Report_${new Date().toISOString().slice(0,10)}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         html2pdf().set(opt).from(element).save();
