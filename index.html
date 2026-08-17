@@ -965,8 +965,8 @@
 
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>طباعة التقرير المالي</title>');
-        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #1e3c72;padding:6px;font-weight:bold;}</style>');
-        win.document.write('</head><body><h2>🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف المالي</h2><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
+        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #333;padding:6px;font-weight:bold;}</style>');
+        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات والأرشيف المالي</h3><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
             const itemsList = inv.items ? inv.items.map(i => `${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`).join(' | ') : cleanItemSummaryText(inv.itemsText);
@@ -976,9 +976,9 @@
         win.document.write('</tbody></table>');
 
         win.document.write(`
-            <table class="totals-table">
+            <table class="totals-table" style="background:#ffffff; color:#333;">
                 <thead>
-                    <tr style="background:#1e3c72; color:#fff;">
+                    <tr style="background:#f8f9fa; color:#1e3c72;">
                         <th>إجمالي المقبوض ($)</th>
                         <th>إجمالي المقبوض (€)</th>
                         <th>إجمالي المقبوض (£)</th>
@@ -990,7 +990,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr style="background:#f8f9fa;">
+                    <tr>
                         <td>$${sumUSD.toFixed(2)}</td>
                         <td>€${sumEUR.toFixed(2)}</td>
                         <td>£${sumGBP.toFixed(2)}</td>
@@ -1009,7 +1009,7 @@
         setTimeout(() => win.print(), 300);
     }
 
-    // دالة تصدير الـ PDF الشاملة والمعدلة بالكامل مع جدول الإجماليات المالي النهائي
+    // دالة تصدير الـ PDF المعدلة نهائياً (فصل العوان لمنع التداخل + خلفية بيضاء لتذييل الإجماليات)
     function exportReportPDF() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -1047,17 +1047,20 @@
             }
         });
 
-        // إنشاء حاوية مؤقتة للـ PDF بدون أزرار وبجدول إجماليات منسق
         const element = document.createElement('div');
         element.style.padding = '15px';
         element.style.direction = 'rtl';
         element.style.fontFamily = 'system-ui, sans-serif';
+        element.style.background = '#ffffff';
 
         let htmlContent = `
-            <h2 style="text-align:center; color:#1e3c72; margin-bottom:5px;">🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف المالي</h2>
-            <p style="text-align:center; font-size:11px; margin-bottom:15px; color:#555;">تاريخ التصدير: ${new Date().toLocaleString('ar-EG')}</p>
+            <div style="text-align:center; margin-bottom:15px; border-bottom:2px solid #1e3c72; padding-bottom:8px;">
+                <h1 style="color:#1e3c72; margin:0 0 4px 0; font-size:20px;">Anjum Green Pharmacy 🌿</h1>
+                <h3 style="color:#333; margin:0; font-size:14px;">تقرير المبيعات والأرشيف المالي</h3>
+                <p style="font-size:10px; color:#666; margin-top:4px;">تاريخ التصدير: ${new Date().toLocaleString('ar-EG')}</p>
+            </div>
             
-            <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+            <table style="width:100%; border-collapse:collapse; margin-bottom:15px; background:#fff;">
                 <thead>
                     <tr style="background:#1e3c72; color:#fff;">
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">م</th>
@@ -1096,48 +1099,48 @@
 
             htmlContent += `
                 <tr>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px;">${index + 1}</td>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; font-weight:bold;">#${inv.id}</td>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; white-space:nowrap;">${cleanDateStr}</td>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:right; font-size:9px; line-height:1.3;">${itemsList}</td>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:8px;">${payBreakdown}</td>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px;">${(inv.totalComm || 0).toFixed(2)} ج.م</td>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#27ae60;">${(inv.totalEGP || 0).toFixed(2)} ج.م</td>
-                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#8e44ad;">${(inv.netProfit || 0).toFixed(2)} ج.م</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px;">${index + 1}</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold;">#${inv.id}</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; white-space:nowrap;">${cleanDateStr}</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:right; font-size:9px; line-height:1.3;">${itemsList}</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:8px;">${payBreakdown}</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px;">${(inv.totalComm || 0).toFixed(2)} ج.م</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#27ae60;">${(inv.totalEGP || 0).toFixed(2)} ج.م</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#8e44ad;">${(inv.netProfit || 0).toFixed(2)} ج.م</td>
                 </tr>
             `;
         });
 
-        // إضافة جدول الإجماليات المالي المجمع لكل عملة بنهاية ملف الـ PDF
+        // تذييل تجميع مالي بخلفية بيضاء ونصوص واضحة
         htmlContent += `
                 </tbody>
             </table>
 
-            <div style="margin-top:15px; background:#1e3c72; color:#fff; border-radius:6px; padding:10px;">
-                <h3 style="text-align:center; font-size:12px; margin-bottom:8px; color:#f1c40f;">💵 التقرير المالي المجمع والعملات للتقرير</h3>
-                <table style="width:100%; border-collapse:collapse; color:#fff; text-align:center; font-size:9px;">
+            <div style="margin-top:15px; background:#ffffff; color:#333; border:2px solid #1e3c72; border-radius:6px; padding:8px;">
+                <h3 style="text-align:center; font-size:11px; margin:0 0 6px 0; color:#1e3c72;">💵 التقرير المالي المجمع والعملات للتقرير</h3>
+                <table style="width:100%; border-collapse:collapse; text-align:center; font-size:9px; background:#fff;">
                     <thead>
-                        <tr style="background:rgba(255,255,255,0.15);">
-                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض ($)</th>
-                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض (€)</th>
-                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض (£)</th>
-                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض (EGP)</th>
-                            <th style="border:1px solid #fff; padding:4px;">إجمالي الفيزا (Visa)</th>
-                            <th style="border:1px solid #fff; padding:4px;">إجمالي المبيعات كلياً</th>
-                            <th style="border:1px solid #fff; padding:4px;">إجمالي التجاري</th>
-                            <th style="border:1px solid #fff; padding:4px;">صافي الأرباح المتبقية</th>
+                        <tr style="background:#f0f4f8; color:#1e3c72;">
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي المقبوض ($)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي المقبوض (€)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي المقبوض (£)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي المقبوض (EGP)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي الفيزا (Visa)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي المبيعات كلياً</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي التجاري</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">صافي الأرباح المتبقية</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">$${sumUSD.toFixed(2)}</td>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">€${sumEUR.toFixed(2)}</td>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">£${sumGBP.toFixed(2)}</td>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">${sumEGP.toFixed(2)} ج.م</td>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">${sumVISA.toFixed(2)} ج.م</td>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold; color:#2ecc71;">${totalSellEGPAll.toFixed(2)} ج.م</td>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold; color:#e74c3c;">${totalCommAll.toFixed(2)} ج.م</td>
-                            <td style="border:1px solid #fff; padding:5px; font-weight:bold; color:#f1c40f;">${totalProfitAll.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">$${sumUSD.toFixed(2)}</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">€${sumEUR.toFixed(2)}</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">£${sumGBP.toFixed(2)}</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">${sumEGP.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">${sumVISA.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#27ae60;">${totalSellEGPAll.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#c0392b;">${totalCommAll.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#8e44ad;">${totalProfitAll.toFixed(2)} ج.م</td>
                         </tr>
                     </tbody>
                 </table>
