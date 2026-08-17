@@ -814,7 +814,7 @@
         });
     }
 
-    // دالة طباعة التقرير المالي المحدثة مع صف التجميع الشامل للعملات والإجمالي المصري
+    // دالة طباعة التقرير المالي المحدثة المباشرة بجدول تجميع مالي للعملات
     function printReportTable() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -851,11 +851,9 @@
             }
         });
 
-        const currenciesSummary = `$: ${sumUSD.toFixed(2)} | €: ${sumEUR.toFixed(2)} | £: ${sumGBP.toFixed(2)} | مصري: ${sumEGP.toFixed(2)} ج.م | فيزا: ${sumVISA.toFixed(2)} ج.م`;
-
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>طباعة التقرير المالي</title>');
-        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-row{background:#f1f2f6;font-weight:bold;}</style>');
+        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #1e3c72;padding:6px;font-weight:bold;}</style>');
         win.document.write('</head><body><h2>🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف المالي</h2><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
@@ -863,10 +861,38 @@
             win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
         });
 
-        // إضافة صف التجميع والتجميع المالي في تذييل الجدول
-        win.document.write(`<tr class="totals-row"><td colspan="4" style="text-align:right; padding:8px;"><b>إجمالي تجميع العملات المقبوضة:</b><br><span style="color:#1e3c72;">${currenciesSummary}</span></td><td style="color:#c0392b;">${totalCommAll.toFixed(2)} ج.م</td><td style="color:#27ae60; font-size:11px;"><b>${totalSellEGPAll.toFixed(2)} ج.م</b></td><td style="color:#8e44ad; font-size:11px;"><b>${totalProfitAll.toFixed(2)} ج.م</b></td></tr>`);
+        win.document.write('</tbody></table>');
 
-        win.document.write('</tbody></table></body></html>');
+        // جدول تجميع مالي واضح ومستقل للعملات والإجمالي المصري في أسفل التقرير
+        win.document.write(`
+            <table class="totals-table">
+                <thead>
+                    <tr style="background:#1e3c72; color:#fff;">
+                        <th>إجمالي المقبوض ($)</th>
+                        <th>إجمالي المقبوض (€)</th>
+                        <th>إجمالي المقبوض (£)</th>
+                        <th>إجمالي المقبوض (EGP)</th>
+                        <th>إجمالي الفيزا (Visa)</th>
+                        <th>إجمالي المبيعات كلياً</th>
+                        <th>إجمالي التجاري</th>
+                        <th>صافي الأرباح النهائى</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background:#f8f9fa;">
+                        <td>$${sumUSD.toFixed(2)}</td>
+                        <td>€${sumEUR.toFixed(2)}</td>
+                        <td>£${sumGBP.toFixed(2)}</td>
+                        <td>${sumEGP.toFixed(2)} ج.م</td>
+                        <td>${sumVISA.toFixed(2)} ج.م</td>
+                        <td style="color:#27ae60;">${totalSellEGPAll.toFixed(2)} ج.م</td>
+                        <td style="color:#c0392b;">${totalCommAll.toFixed(2)} ج.م</td>
+                        <td style="color:#8e44ad; font-size:11px;">${totalProfitAll.toFixed(2)} ج.م</td>
+                    </tr>
+                </tbody>
+            </table>
+        </body></html>`);
+
         win.document.close();
         win.focus();
         setTimeout(() => win.print(), 300);
