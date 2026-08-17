@@ -9,8 +9,12 @@
         * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
         html, body { width: 100%; overflow-x: hidden; background-color: #f0f2f5; padding: 8px; color: #333; }
         .app-container { width: 100%; max-width: 980px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); box-sizing: border-box; }
-        h1 { text-align: center; color: #1e3c72; margin-bottom: 15px; font-size: 1.3rem; word-break: break-word; }
+        h1 { text-align: center; color: #1e3c72; margin-bottom: 8px; font-size: 1.3rem; word-break: break-word; }
         
+        .sync-status { text-align: center; font-size: 0.78rem; font-weight: bold; margin-bottom: 12px; padding: 4px; border-radius: 6px; }
+        .status-online { background: #d4edda; color: #155724; }
+        .status-offline { background: #f8d7da; color: #721c24; }
+
         .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tab-btn { background: #e9ecef; color: #2c3e50; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; flex-shrink: 0; }
         .tab-btn.active { background: #1e3c72; color: #fff; }
@@ -56,6 +60,8 @@
         th, td { padding: 6px 4px; border: 1px solid #ddd; text-align: center; font-size: 0.78rem; word-break: break-word; vertical-align: middle; }
         th { background: #3498db; color: white; white-space: nowrap; }
 
+        .low-stock-row { background-color: #ffe6e6 !important; color: #c0392b; font-weight: bold; }
+
         .login-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #1e3c72; display: flex; justify-content: center; align-items: center; z-index: 9999999; }
         .login-card { background: white; padding: 25px; border-radius: 12px; text-align: center; width: 90%; max-width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .seq-num { font-weight: bold; color: #1e3c72; display: inline-block; width: 100%; text-align: center; }
@@ -79,12 +85,13 @@
 
 <div class="app-container" id="mainContainer" style="display:none;">
     <h1>🌿 Anjum Green Pharmacy - النظام الإداري المالي والمخزني 2026</h1>
+    <div id="syncIndicator" class="sync-status status-online">🟢 متصل ومتزامن سحابياً مع Google Sheets</div>
 
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="showTab('salesTab', event)">🛒 البيع المباشر والفاتورة</button>
         <button class="tab-btn" onclick="showTab('stockTab', event)">🔒 📦 حالة وتفاصيل المخزن</button>
         <button class="tab-btn" onclick="showTab('addStockTab', event)">🔒 ➕ إضافة وشحن مخزون</button>
-        <button class="tab-btn" onclick="showTab('reportsTab', event)">🔒 📊 التقارير والأرشيف وصافي الربح</button>
+        <button class="tab-btn" onclick="showTab('reportsTab', event)">🔒 📊 التقارير والنسخ الاحتياطي</button>
     </div>
 
     <!-- 1. تبويب البيع المباشر -->
@@ -166,13 +173,14 @@
     <!-- 2. تبويب المخزن -->
     <div id="stockTab" class="tab-content">
         <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-            <span>📦 حالة وتفاصيل المخزون الحالي</span>
+            <span>📦 حالة وتفاصيل المخزون الحالي (القصّر بالنواقص تُظلل بالأحمر)</span>
             <div style="display:flex; gap:6px;">
+                <button class="btn btn-red" style="width:auto; margin:0; padding:6px 10px; font-size:0.8rem;" onclick="filterLowStock()">عرض النواقص فقط ⚠️</button>
                 <button class="btn btn-purple" style="width:auto; margin:0; padding:6px 10px; font-size:0.8rem;" onclick="printStockTable()">طباعة 🖨️</button>
                 <button class="btn btn-orange" style="width:auto; margin:0; padding:6px 10px; font-size:0.8rem;" onclick="exportStockPDF()">تصدير PDF 📄</button>
             </div>
         </div>
-        <input type="text" class="search-box" placeholder="فلترة المخزن باسم المنتج..." oninput="filterStockTable(this.value)">
+        <input type="text" id="stockFilterInput" class="search-box" placeholder="فلترة المخزن باسم المنتج..." oninput="filterStockTable(this.value)">
         <div id="stockPrintArea" style="max-height: 400px; overflow-y: auto;">
             <div class="table-responsive"><table>
                 <thead>
@@ -221,18 +229,19 @@
         </div>
     </div>
 
-    <!-- 4. تبويب التقارير والأرشيف -->
+    <!-- 4. تبويب التقارير والأرشيف والنسخ الاحتياطي -->
     <div id="reportsTab" class="tab-content">
-        <div class="section-title">📊 تقارير المبيعات وصافي الربح والأرشيف المالي</div>
+        <div class="section-title">📊 تقارير المبيعات والأرشيف والنسخ الاحتياطي</div>
         
         <div class="date-filter card">
             <div>من تاريخ: <input type="date" id="fromDate"></div>
             <div>إلى تاريخ: <input type="date" id="toDate"></div>
             <button class="btn btn-blue" style="width: auto; margin-top: 0;" onclick="generateReport()">عرض الفلترة 📈</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="calculateNetProfit()">📊 حساب صافي الربح والعملات 💵</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="printReportTable()">طباعة 🖨️</button>
+            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="calculateNetProfit()">📊 صافي الربح والعملات 💵</button>
+            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="printReportTable()">طباعة التقرير 🖨️</button>
             <button class="btn btn-orange" style="width: auto; margin-top: 0;" onclick="exportReportPDF()">تصدير PDF 📄</button>
-            <button class="btn btn-blue" style="width: auto; margin-top: 0; background:#27ae60;" onclick="exportReportToCSV()">تصدير CSV 💾</button>
+            <button class="btn btn-blue" style="width: auto; margin-top: 0; background:#27ae60;" onclick="exportBackupJSON()">نسخة احتياطية 💾</button>
+            <button class="btn btn-purple" style="width: auto; margin-top: 0; background:#8e44ad;" onclick="importBackupJSON()">استرجاع نسخة 📥</button>
         </div>
 
         <div id="profitBox" class="totals-box" style="display:none; background:#1e3c72; margin-bottom:15px;">
@@ -247,6 +256,11 @@
                 <div class="total-item" style="background:rgba(231,76,60,0.2);">إجمالي التكلفة التجاري <span id="repTotalComm">0.00 ج.م</span></div>
                 <div class="total-item" style="background:#27ae60; grid-column: span 2;">صافي الأرباح المتبقية <span id="repNetProfit" style="font-size:1.1rem; color:#fff;">0.00 ج.م</span></div>
             </div>
+            
+            <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.2); padding-top:8px;">
+                <h4 style="text-align:center; color:#f1c40f; margin-bottom:6px;">⭐ الأصناف الأكثر مبيعاً بالفترة:</h4>
+                <div id="topProductsList" style="font-size:0.8rem; text-align:center; line-height:1.5;"></div>
+            </div>
         </div>
 
         <div class="table-responsive" id="reportsPrintArea"><table>
@@ -260,7 +274,7 @@
                     <th>إجمالي التجاري</th>
                     <th>إجمالي البيع (EGP)</th>
                     <th>صافي الربح</th>
-                    <th style="width:140px;">الإجراءات</th>
+                    <th style="width:160px;">الإجراءات</th>
                 </tr>
             </thead>
             <tbody id="savedInvoicesBody">
@@ -282,7 +296,21 @@
     window.addEventListener('DOMContentLoaded', () => {
         const passEl = document.getElementById('entryPassInput');
         if (passEl) passEl.focus();
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
     });
+
+    function updateOnlineStatus() {
+        const ind = document.getElementById('syncIndicator');
+        if (navigator.onLine) {
+            ind.className = 'sync-status status-online';
+            ind.textContent = '🟢 متصل ومتزامن سحابياً مع Google Sheets';
+        } else {
+            ind.className = 'sync-status status-offline';
+            ind.textContent = '🔴 غير متصل بالإنترنت - يعمل محلياً مؤقتاً';
+        }
+    }
 
     function validateEntryPassword() {
         const inputEl = document.getElementById('entryPassInput');
@@ -443,6 +471,7 @@
         loadRatesFromStorage();
         prepareNewInvoice();
         fetchCloudInvoicesData();
+        updateOnlineStatus();
     }
 
     function loadDataFromStorage() {
@@ -486,7 +515,7 @@
                 const idx = products.indexOf(i);
                 return `<div class="result-item" onclick="pickProductIndex(${idx})" ontouchstart="pickProductIndex(${idx})">
                     <span style="color:#1e3c72; font-weight:bold;">${i.n}</span>
-                    <span style="color:#27ae60; font-size:0.8rem;">(المتاح: ${i.q})</span>
+                    <span style="color:${i.q > 3 ? '#27ae60' : '#e74c3c'}; font-size:0.8rem;">(المتاح: ${i.q})</span>
                 </div>`;
             }).join('');
             list.style.display = 'block';
@@ -579,6 +608,7 @@
             if (pObj) {
                 pObj.q += item.qty;
                 saveProductsToStorage();
+                syncToCloud("updateSingleProduct", pObj);
             }
         }
         invoiceItems.splice(index, 1);
@@ -764,10 +794,10 @@
         const tbody = document.getElementById('stockTableBody');
         const matched = products.filter(i => i.n && i.n.toLowerCase().includes(filter.toLowerCase()));
         tbody.innerHTML = matched.map((i, index) => `
-            <tr>
+            <tr class="${i.q <= 3 ? 'low-stock-row' : ''}">
                 <td style="font-weight:bold;">${index + 1}</td>
-                <td style="text-align:right; font-weight:bold;">${i.n}</td>
-                <td style="font-weight:bold; color: ${i.q > 0 ? '#27ae60' : '#e74c3c'};">${i.q} قطعة</td>
+                <td style="text-align:right; font-weight:bold;">${i.n} ${i.q <= 3 ? '⚠️ (نواقص)' : ''}</td>
+                <td style="font-weight:bold;">${i.q} قطعة</td>
                 <td>${i.p.toFixed(2)} ج.م</td>
                 <td>${(i.p * 3).toFixed(2)} ج.م</td>
                 <td>
@@ -779,6 +809,24 @@
     }
 
     function filterStockTable(val) { renderStockTable(val); }
+
+    function filterLowStock() {
+        document.getElementById('stockFilterInput').value = '';
+        const tbody = document.getElementById('stockTableBody');
+        const matched = products.filter(i => i.q <= 3);
+        tbody.innerHTML = matched.map((i, index) => `
+            <tr class="low-stock-row">
+                <td style="font-weight:bold;">${index + 1}</td>
+                <td style="text-align:right; font-weight:bold;">${i.n} ⚠️ (نواقص)</td>
+                <td style="font-weight:bold;">${i.q} قطعة</td>
+                <td>${i.p.toFixed(2)} ج.م</td>
+                <td>${(i.p * 3).toFixed(2)} ج.م</td>
+                <td>
+                    <button class="btn btn-blue" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="editProductSystem('${i.n}')">تعديل ✏️</button>
+                </td>
+            </tr>
+        `).join('');
+    }
 
     function printStockTable() {
         const win = window.open('', '', 'height=700,width=900');
@@ -814,7 +862,29 @@
         });
     }
 
-    // دالة طباعة التقرير المالي المحدثة المباشرة بجدول تجميع مالي للعملات
+    function printSingleReceipt(invId) {
+        const inv = savedInvoices.find(i => i.id === invId);
+        if (!inv) return;
+
+        const win = window.open('', '', 'height=600,width=400');
+        win.document.write('<html><head><title>إيصال بيع #' + inv.id + '</title>');
+        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:10px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:4px;font-size:11px;} th{background:#1e3c72;color:#fff;}</style>');
+        win.document.write('</head><body><h3>🌿 Anjum Green Pharmacy</h3><p>فاتورة بيع رقم: <b>#' + inv.id + '</b></p><p>التاريخ: ' + (inv.date||'') + '</p><table><thead><tr><th>الصنف</th><th>الكمية</th><th>البيع</th></tr></thead><tbody>');
+        
+        if (inv.items && Array.isArray(inv.items)) {
+            inv.items.forEach(i => {
+                win.document.write(`<tr><td style="text-align:right;">${i.name}</td><td>${i.qty}</td><td>${i.sellTotal.toFixed(2)} ج.م</td></tr>`);
+            });
+        } else {
+            win.document.write(`<tr><td colspan="3">${inv.itemsText||''}</td></tr>`);
+        }
+
+        win.document.write(`</tbody></table><h4 style="margin-top:10px; text-align:left;">الإجمالي النهائي: ${inv.totalEGP.toFixed(2)} ج.م</h4><p style="font-size:10px; margin-top:15px;">شكراً لزيارتكم Anjum Green Pharmacy!</p></body></html>`);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 300);
+    }
+
     function printReportTable() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -863,7 +933,6 @@
 
         win.document.write('</tbody></table>');
 
-        // جدول تجميع مالي واضح ومستقل للعملات والإجمالي المصري في أسفل التقرير
         win.document.write(`
             <table class="totals-table">
                 <thead>
@@ -960,6 +1029,7 @@
                 <td style="color:#27ae60; font-weight:bold; white-space:nowrap;">${(inv.totalEGP || 0).toFixed(2)} ج.م</td>
                 <td style="color:#8e44ad; font-weight:bold; white-space:nowrap;">${(inv.netProfit || 0).toFixed(2)} ج.م</td>
                 <td>
+                    <button class="btn btn-purple" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="printSingleReceipt(${inv.id})">إيصال 🧾</button>
                     <button class="btn btn-blue" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="loadInvoiceToEdit(${inv.id})">تعديل ✏️</button>
                     <button class="btn btn-red" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="cancelInvoiceSystem(${inv.id})">حذف 🗑️</button>
                 </td>
@@ -1021,6 +1091,7 @@
 
         let totalSell = 0, totalComm = 0, netProfit = 0;
         let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0;
+        let productStats = {};
 
         filteredInvoices.forEach(inv => {
             totalSell += inv.totalEGP || 0;
@@ -1034,6 +1105,8 @@
                     sumGBP += parseFloat(i.gbp || 0);
                     sumEGP += parseFloat(i.egp || 0);
                     sumVISA += parseFloat(i.visa || 0);
+
+                    productStats[i.name] = (productStats[i.name] || 0) + i.qty;
                 });
             } else {
                 sumUSD += parseFloat(inv.usd || 0);
@@ -1054,29 +1127,62 @@
         document.getElementById('repTotalComm').textContent = totalComm.toFixed(2) + ' ج.م';
         document.getElementById('repNetProfit').textContent = netProfit.toFixed(2) + ' ج.م';
 
+        let sortedTop = Object.keys(productStats).map(key => {
+            return { name: key, qty: productStats[key] };
+        }).sort((a,b) => b.qty - a.qty).slice(0, 5);
+
+        const topHtml = sortedTop.length > 0 ? sortedTop.map((p, idx) => `<b>#${idx+1} ${p.name}</b> (${p.qty} قطعة)`).join(' | ') : 'لا توجد بيانات بيع كافية للتحليل';
+        document.getElementById('topProductsList').innerHTML = topHtml;
+
         document.getElementById('profitBox').style.display = 'block';
     }
 
-    function exportReportToCSV() {
-        if (savedInvoices.length === 0) return alert('لا توجد فواتير لتصديرها!');
+    function exportBackupJSON() {
+        if (!checkAdminPassword()) return;
+        const backupData = {
+            products: products,
+            invoices: savedInvoices,
+            rates: RATES,
+            counter: invoiceCounter,
+            date: new Date().toISOString()
+        };
 
-        let csvContent = "\uFEFFم,رقم الفاتورة,تاريخ الفاتورة,الأصناف,دولار,يورو,إسترليني,مصري,فيزا,إجمالي التجاري,إجمالي البيع,صافي الربح\n";
-        savedInvoices.forEach((inv, idx) => {
-            const itemsStr = inv.itemsText || (inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(' + ') : '');
-            let u = 0, eu = 0, g = 0, eg = 0, v = 0;
-            if (inv.items && Array.isArray(inv.items)) {
-                inv.items.forEach(i => { u += i.usd||0; eu += i.eur||0; g += i.gbp||0; eg += i.egp||0; v += i.visa||0; });
-            } else {
-                u = inv.usd||0; eu = inv.eur||0; g = inv.gbp||0; eg = inv.egp||0; v = inv.visa||0;
-            }
-            csvContent += `"${idx+1}","${inv.id}","${inv.date}","${itemsStr}","${u}","${eu}","${g}","${eg}","${v}","${inv.totalComm||0}","${inv.totalEGP||0}","${inv.netProfit||0}"\n`;
-        });
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Anjum_Pharmacy_Full_Backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+    }
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "Anjum_Green_Pharmacy_Report_2026.csv";
-        link.click();
+    function importBackupJSON() {
+        if (!checkAdminPassword()) return;
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = event => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.products) products = data.products;
+                    if (data.invoices) savedInvoices = data.invoices;
+                    if (data.rates) RATES = data.rates;
+                    if (data.counter) invoiceCounter = data.counter;
+
+                    saveProductsToStorage();
+                    saveInvoicesToStorage();
+                    localStorage.setItem('anjum_rates', JSON.stringify(RATES));
+
+                    alert('✅ تم استرجاع النسخة الاحتياطية وتحديث النظام بنجاح!');
+                    location.reload();
+                } catch(err) {
+                    alert('❌ ملف النسخة الاحتياطية غير صالح!');
+                }
+            };
+            reader.readAsText(file);
+        };
+        input.click();
     }
 </script>
 </body>
