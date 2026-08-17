@@ -48,6 +48,9 @@
         .btn-purple { background: #8e44ad; }
         .btn-orange { background: #e67e22; }
 
+        .nav-controls { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
+        .nav-controls .btn { width: auto; font-size: 0.8rem; padding: 6px 12px; margin-top: 0; }
+
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 6px; }
         table { width: 100%; min-width: 600px; border-collapse: collapse; }
         th, td { padding: 6px 4px; border: 1px solid #ddd; text-align: center; font-size: 0.78rem; word-break: break-word; vertical-align: middle; }
@@ -55,12 +58,7 @@
 
         .login-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #1e3c72; display: flex; justify-content: center; align-items: center; z-index: 9999999; }
         .login-card { background: white; padding: 25px; border-radius: 12px; text-align: center; width: 90%; max-width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        
-        .badge-canceled { background: #e74c3c; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.72rem; white-space: nowrap; display: inline-block; }
-        .badge-archived { background: #e67e22; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.72rem; white-space: nowrap; display: inline-block; }
-        .badge-active { background: #27ae60; color: white; padding: 3px 6px; border-radius: 4px; font-size: 0.72rem; white-space: nowrap; display: inline-block; }
         .seq-num { font-weight: bold; color: #1e3c72; display: inline-block; width: 100%; text-align: center; }
-        
         .totals-box { background: #1e3c72; color: #fff; padding: 12px; border-radius: 8px; margin-top: 15px; }
         .totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; font-size: 0.75rem; text-align: center; }
         .total-item { background: rgba(255,255,255,0.1); padding: 6px 4px; border-radius: 6px; }
@@ -91,20 +89,29 @@
 
     <!-- 1. تبويب البيع المباشر -->
     <div id="salesTab" class="tab-content active">
-        <div class="section-title">🛒 إنشاء فاتورة بيع جديدة</div>
+        <div class="section-title">🛒 إنشاء وتعديل فاتورة بيع</div>
 
         <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
-            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 خيارات المزامنة وأسعار العملات:</div>
-            <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">سحب وتحديث البيانات من Google Sheets 🔄</button>
+            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 خيارات المزامنة والعملات:</div>
+            <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">سحب وتحديث البيانات 🔄</button>
             <button class="btn btn-purple" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="updateRatesPrompt()">⚙️ ضبط أسعار العملات</button>
+            <button class="btn btn-orange" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="prepareNewInvoice()">➕ فاتورة جديدة</button>
         </div>
 
-        <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px;">
+        <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px; align-items: center;">
             <div>تاريخ الفاتورة: <input type="datetime-local" id="invoiceDate" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc;"></div>
-            <div>رقم الفاتورة الحقيقي: <span id="invNum" style="color: #1e3c72; font-size: 1.1rem; font-weight: bold;">1001</span></div>
+            <div>رقم الفاتورة: <span id="invNum" style="color: #1e3c72; font-size: 1.2rem; font-weight: bold;">1001</span></div>
         </div>
 
-        <input type="text" id="searchInput" class="search-box" placeholder="ابحث باسم المنتج لإضافته..." oninput="searchProduct()">
+        <!-- أزرار التنقل بين السجلات -->
+        <div class="nav-controls">
+            <button class="btn btn-blue" onclick="navigateInvoice('first')">⏮️ أول سجل</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('prev')">◀️ السابق</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('next')">اللاحق ▶️</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('last')">آخر سجل ⏭️</button>
+        </div>
+
+        <input type="text" id="searchInput" class="search-box" style="margin-top:12px;" placeholder="ابحث باسم المنتج لإضافته..." oninput="searchProduct()">
         <div id="searchResults" class="results-list"></div>
 
         <div id="productCard" class="card" style="display:none;">
@@ -112,7 +119,7 @@
             <div class="info-row">
                 <div>المتاح بالمخزن: <span id="stockQty" style="color:#27ae60;">0</span> قطعة</div>
                 <div>السعر التجاري للوحدة: <span id="commPrice" style="color:#2c3e50;">0</span> ج.م</div>
-                <div>الحد الأدنى الاسترشادي للقطعة (×3): <span id="guidePrice" style="color:#e67e22;">0</span> ج.م</div>
+                <div>الحد الأدنى الاسترشادي (×3): <span id="guidePrice" style="color:#e67e22;">0</span> ج.م</div>
             </div>
 
             <div class="info-row" style="align-items: center;">
@@ -130,13 +137,13 @@
             </div>
 
             <div id="priceWarningBox" class="warning-box">
-                ⚠️ تنبيه تحذيري: السعر المدخل إجمالياً (<span id="enteredTotalVal">0</span> ج.م) أقل من الحد الأدنى الاسترشادي المطلوب (<span id="requiredMinVal">0</span> ج.م)!
+                ⚠️ تنبيه تحذيري: السعر المدخل إجمالياً (<span id="enteredTotalVal">0</span> ج.م) أقل من الحد الأدنى المطلوب (<span id="requiredMinVal">0</span> ج.م)!
             </div>
 
             <button class="btn" onclick="addToInvoice()">خصم من المخزن وإضافة للفاتورة 🛒</button>
         </div>
 
-        <div class="section-title" style="margin-top: 20px;">📄 جدول الفاتورة الحالية</div>
+        <div class="section-title" style="margin-top: 20px;">📄 جدول الأصناف بالفاتورة الحالية</div>
         <div class="table-responsive"><table>
             <thead>
                 <tr>
@@ -146,10 +153,11 @@
                     <th>إجمالي التجاري</th>
                     <th>طرق الدفع المفصلة</th>
                     <th>إجمالي سعر البيع</th>
+                    <th style="width:60px;">إجراء</th>
                 </tr>
             </thead>
             <tbody id="invoiceTableBody">
-                <tr><td colspan="6" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>
+                <tr><td colspan="7" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>
             </tbody>
         </table></div>
 
@@ -166,7 +174,6 @@
             </div>
         </div>
         <input type="text" class="search-box" placeholder="فلترة المخزن باسم المنتج..." oninput="filterStockTable(this.value)">
-        
         <div id="stockPrintArea" style="max-height: 400px; overflow-y: auto;">
             <div class="table-responsive"><table>
                 <thead>
@@ -215,7 +222,7 @@
         </div>
     </div>
 
-    <!-- 4. تبويب التقارير والأرشيف وصافي الربح -->
+    <!-- 4. تبويب التقارير والأرشيف -->
     <div id="reportsTab" class="tab-content">
         <div class="section-title">📊 تقارير المبيعات وصافي الربح والأرشيف المالي</div>
         
@@ -249,17 +256,16 @@
                     <th style="width:35px;">م</th>
                     <th>رقم الفاتورة</th>
                     <th>تاريخ الفاتورة الفعلي</th>
-                    <th>الحالة</th>
                     <th>تفاصيل الأصناف المباعة</th>
                     <th>طرق الدفع والعملات المقبوضة</th>
                     <th>إجمالي التجاري</th>
                     <th>إجمالي البيع (EGP)</th>
                     <th>صافي الربح</th>
-                    <th style="width:140px;">الإجراءات والأرشفة</th>
+                    <th style="width:140px;">الإجراءات</th>
                 </tr>
             </thead>
             <tbody id="savedInvoicesBody">
-                <tr><td colspan="10" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>
+                <tr><td colspan="9" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>
             </tbody>
         </table></div>
     </div>
@@ -272,6 +278,7 @@
     const INVOICE_EDIT_PASSWORD = "753";
 
     let isAdminAuth = false;
+    let currentNavIndex = -1;
 
     window.addEventListener('DOMContentLoaded', () => {
         const passEl = document.getElementById('entryPassInput');
@@ -280,8 +287,7 @@
 
     function validateEntryPassword() {
         const inputEl = document.getElementById('entryPassInput');
-        const input = inputEl ? inputEl.value : '';
-        if (input === ENTRY_PASSWORD) {
+        if (inputEl && inputEl.value === ENTRY_PASSWORD) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
             initSystem();
@@ -303,22 +309,15 @@
     }
 
     function checkInvoiceEditPassword() {
-        const input = prompt("🔐 أدخل كلمة السر الحصرية لتعديل وإلغاء الفواتير:");
-        if (input === INVOICE_EDIT_PASSWORD) {
-            return true;
-        } else {
-            alert("❌ كلمة السر غير صحيحة!");
-            return false;
-        }
+        const input = prompt("🔐 أدخل كلمة السر الحصرية للتعديل والإلغاء:");
+        return input === INVOICE_EDIT_PASSWORD;
     }
 
     let RATES = { USD: 50, EUR: 60, GBP: 70, EGP: 1, VISA: 1 };
 
     function loadRatesFromStorage() {
         const savedRates = localStorage.getItem('anjum_rates');
-        if (savedRates) {
-            RATES = JSON.parse(savedRates);
-        }
+        if (savedRates) RATES = JSON.parse(savedRates);
         updateRateLabels();
     }
 
@@ -331,21 +330,15 @@
 
     function updateRatesPrompt() {
         if (!checkAdminPassword()) return;
-
-        const newUSD = parseFloat(prompt("💵 أدخل سعر صرف الدولار ($) مقابل الجنيه:", RATES.USD)) || RATES.USD;
-        const newEUR = parseFloat(prompt("💶 أدخل سعر صرف اليورو (€) مقابل الجنيه:", RATES.EUR)) || RATES.EUR;
-        const newGBP = parseFloat(prompt("💷 أدخل سعر صرف الإسترليني (£) مقابل الجنيه:", RATES.GBP)) || RATES.GBP;
-        const newVISA = parseFloat(prompt("💳 أدخل معامل ضرب الفيزا (افتراضي 1):", RATES.VISA)) || RATES.VISA;
-
-        RATES.USD = newUSD;
-        RATES.EUR = newEUR;
-        RATES.GBP = newGBP;
-        RATES.VISA = newVISA;
+        RATES.USD = parseFloat(prompt("💵 سعر صرف الدولار ($):", RATES.USD)) || RATES.USD;
+        RATES.EUR = parseFloat(prompt("💶 سعر صرف اليورو (€):", RATES.EUR)) || RATES.EUR;
+        RATES.GBP = parseFloat(prompt("💷 سعر صرف الإسترليني (£):", RATES.GBP)) || RATES.GBP;
+        RATES.VISA = parseFloat(prompt("💳 معامل ضرب الفيزا:", RATES.VISA)) || RATES.VISA;
 
         localStorage.setItem('anjum_rates', JSON.stringify(RATES));
         updateRateLabels();
         checkPriceAlert();
-        alert('✅ تم تحديث وحفظ أسعار صرف العملات بنجاح!');
+        alert('✅ تم تحديث وحفظ أسعار الصرف بنجاح!');
     }
 
     let products = [];
@@ -354,6 +347,7 @@
     let invoiceItems = [];
     let savedInvoices = [];
     let invoiceCounter = 1001;
+    let activeInvoiceId = 1001;
 
     function fetchCloudInvoicesData(callbackAfter) {
         const oldScript = document.getElementById('cloudSyncScript');
@@ -369,7 +363,6 @@
 
                 if (resData.nextInvoiceId) {
                     invoiceCounter = resData.nextInvoiceId;
-                    document.getElementById('invNum').textContent = invoiceCounter;
                     localStorage.setItem('anjum_counter', invoiceCounter.toString());
                 }
 
@@ -379,6 +372,7 @@
                     generateReport();
                 }
 
+                prepareNewInvoice();
                 if (callbackAfter) callbackAfter();
             }
         };
@@ -389,16 +383,66 @@
         document.body.appendChild(script);
     }
 
+    function prepareNewInvoice() {
+        activeInvoiceId = invoiceCounter;
+        currentNavIndex = -1;
+        document.getElementById('invNum').textContent = activeInvoiceId;
+        
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
+        
+        invoiceItems = [];
+        renderInvoice();
+    }
+
+    function loadInvoiceIntoForm(inv) {
+        if (!inv) return;
+        activeInvoiceId = inv.id;
+        document.getElementById('invNum').textContent = inv.id;
+        
+        if (inv.date) {
+            document.getElementById('invoiceDate').value = inv.date.replace(' ', 'T').slice(0, 16);
+        }
+
+        if (Array.isArray(inv.items)) {
+            invoiceItems = JSON.parse(JSON.stringify(inv.items));
+        } else {
+            invoiceItems = [{
+                name: inv.itemsText || "صنف محفوظ",
+                qty: 1,
+                commUnitPrice: inv.totalComm || 0,
+                sellUnitPrice: inv.totalEGP || 0,
+                commTotal: inv.totalComm || 0,
+                sellTotal: inv.totalEGP || 0,
+                netProfit: inv.netProfit || 0,
+                usd: inv.usd||0, eur: inv.eur||0, gbp: inv.gbp||0, egp: inv.egp||0, visa: inv.visa||0
+            }];
+        }
+        renderInvoice();
+    }
+
+    function navigateInvoice(direction) {
+        if (savedInvoices.length === 0) return alert('لا توجد فواتير مسجلة للتنقل بينها!');
+        
+        if (direction === 'first') currentNavIndex = 0;
+        else if (direction === 'last') currentNavIndex = savedInvoices.length - 1;
+        else if (direction === 'prev') {
+            if (currentNavIndex <= 0) currentNavIndex = 0;
+            else currentNavIndex--;
+        }
+        else if (direction === 'next') {
+            if (currentNavIndex >= savedInvoices.length - 1) currentNavIndex = savedInvoices.length - 1;
+            else currentNavIndex++;
+        }
+
+        loadInvoiceIntoForm(savedInvoices[currentNavIndex]);
+    }
+
     function initSystem() {
         loadDataFromStorage();
         loadRatesFromStorage();
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-
-        document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
-        document.getElementById('fromDate').value = '';
-        document.getElementById('toDate').value = '';
-
+        prepareNewInvoice();
         fetchCloudInvoicesData();
     }
 
@@ -496,7 +540,7 @@
     function addToInvoice() {
         if (!selectedProd) return;
         const qty = parseInt(document.getElementById('sellQty').value) || 1;
-        if (qty > selectedProd.stock) return alert('⚠️ الكمية المطلوبة غير متوفرة بالمخزن! المتاح: ' + selectedProd.stock);
+        if (qty > selectedProd.stock) return alert('⚠️ الكمية غير متوفرة بالمخزن! المتاح: ' + selectedProd.stock);
 
         const u = parseFloat(document.getElementById('pUSD').value) || 0;
         const eu = parseFloat(document.getElementById('pEUR').value) || 0;
@@ -504,13 +548,6 @@
         const eg = parseFloat(document.getElementById('pEGP').value) || 0;
         const v = parseFloat(document.getElementById('pVISA').value) || 0;
         const itemTotalEGP = (u * RATES.USD) + (eu * RATES.EUR) + (g * RATES.GBP) + (eg * RATES.EGP) + (v * RATES.VISA);
-
-        const minRequiredTotal = selectedProd.guide * qty;
-
-        if (itemTotalEGP < minRequiredTotal) {
-            const confirmSell = confirm(`⚠️ تحذير: إجمالي سعر البيع المدخل (${itemTotalEGP.toFixed(2)} ج.م) أقل من الحد الأدنى المطلوب (${minRequiredTotal.toFixed(2)} ج.م).\n\nهل تريد الاستمرار والتجاوز؟`);
-            if (!confirmSell) return;
-        }
 
         const pObj = products.find(item => item.n === selectedProd.name);
         pObj.q -= qty;
@@ -536,10 +573,23 @@
         document.getElementById('searchInput').value = '';
     }
 
+    function removeInvoiceItem(index) {
+        const item = invoiceItems[index];
+        if (item) {
+            const pObj = products.find(p => p.n === item.name);
+            if (pObj) {
+                pObj.q += item.qty;
+                saveProductsToStorage();
+            }
+        }
+        invoiceItems.splice(index, 1);
+        renderInvoice();
+    }
+
     function renderInvoice() {
         const tbody = document.getElementById('invoiceTableBody');
         if (invoiceItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>';
             return;
         }
 
@@ -548,9 +598,10 @@
                 <td style="font-weight:bold;">${index + 1}</td>
                 <td style="font-weight:bold; text-align:right;">${item.name}</td>
                 <td>${item.qty}</td>
-                <td>${item.commTotal.toFixed(2)} ج.م</td>
-                <td>$:${item.usd} | €:${item.eur} | £:${item.gbp} | مصري:${item.egp} | فيزا:${item.visa}</td>
-                <td style="color:#27ae60; font-weight:bold;">${item.sellTotal.toFixed(2)} ج.م</td>
+                <td>${(item.commTotal||0).toFixed(2)} ج.م</td>
+                <td>$:${item.usd||0} | €:${item.eur||0} | £:${item.gbp||0} | مصري:${item.egp||0} | فيزا:${item.visa||0}</td>
+                <td style="color:#27ae60; font-weight:bold;">${(item.sellTotal||0).toFixed(2)} ج.م</td>
+                <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="removeInvoiceItem(${index})">حذف</button></td>
             </tr>
         `).join('');
     }
@@ -566,45 +617,47 @@
     function saveInvoice() {
         if (invoiceItems.length === 0) return alert('الرجاء إضافة أصناف للفاتورة أولاً!');
 
-        fetchCloudInvoicesData(function() {
-            let invDateRaw = document.getElementById('invoiceDate').value;
-            let invDate = invDateRaw ? invDateRaw.replace('T', ' ') : new Date().toLocaleString('ar-EG');
+        let invDateRaw = document.getElementById('invoiceDate').value;
+        let invDate = invDateRaw ? invDateRaw.replace('T', ' ') : new Date().toLocaleString('ar-EG');
 
-            let totalSell = 0, totalComm = 0, totalProfit = 0;
+        let totalSell = 0, totalComm = 0, totalProfit = 0;
+        let itemsSummaryText = [];
 
-            invoiceItems.forEach(i => {
-                totalSell += i.sellTotal;
-                totalComm += i.commTotal;
-                totalProfit += i.netProfit;
+        invoiceItems.forEach(i => {
+            totalSell += i.sellTotal;
+            totalComm += i.commTotal;
+            totalProfit += i.netProfit;
+            itemsSummaryText.push(`${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`);
 
-                const pObj = products.find(p => p.n === i.name);
-                if (pObj) {
-                    syncToCloud("updateSingleProduct", pObj);
-                }
-            });
-
-            const finalInvId = invoiceCounter;
-            const savedInv = {
-                id: finalInvId,
-                date: invDate,
-                status: 'Active',
-                items: JSON.parse(JSON.stringify(invoiceItems)),
-                totalComm: totalComm,
-                totalEGP: totalSell,
-                netProfit: totalProfit
-            };
-
-            savedInvoices.push(savedInv);
-            invoiceCounter++;
-            saveInvoicesToStorage();
-
-            syncToCloud("saveInvoice", savedInv);
-
-            alert(`تم حفظ الفاتورة #${finalInvId} وتحديث رصيد جدول المنتجات السحابي بنجاح 💾☁️`);
-            invoiceItems = [];
-            renderInvoice();
-            document.getElementById('invNum').textContent = invoiceCounter;
+            const pObj = products.find(p => p.n === i.name);
+            if (pObj) syncToCloud("updateSingleProduct", pObj);
         });
+
+        const savedInv = {
+            id: activeInvoiceId,
+            date: invDate,
+            status: 'Active',
+            items: JSON.parse(JSON.stringify(invoiceItems)),
+            itemsText: itemsSummaryText.join(" | "),
+            totalComm: totalComm,
+            totalEGP: totalSell,
+            netProfit: totalProfit
+        };
+
+        const existingIndex = savedInvoices.findIndex(i => i.id === activeInvoiceId);
+        if (existingIndex > -1) {
+            savedInvoices[existingIndex] = savedInv;
+        } else {
+            savedInvoices.push(savedInv);
+            if (activeInvoiceId === invoiceCounter) invoiceCounter++;
+        }
+
+        saveInvoicesToStorage();
+        syncToCloud("saveInvoice", savedInv);
+
+        alert(`تم حفظ/تعديل الفاتورة #${activeInvoiceId} وتحديث البيانات بنجاح 💾☁️`);
+        prepareNewInvoice();
+        generateReport();
     }
 
     function addNewProductToSystem() {
@@ -625,7 +678,7 @@
         saveProductsToStorage();
         syncToCloud("updateSingleProduct", { n: name, p: price, q: existing ? existing.q : qty });
 
-        alert(`تم تحديث وإرسال المنتج (${name}) للجدول السحابي بدون تكرار! ☁️`);
+        alert(`تم تحديث وإرسال المنتج (${name}) للجدول السحابي! ☁️`);
         document.getElementById('newProdName').value = '';
     }
 
@@ -666,7 +719,7 @@
 
         syncToCloud("updateSingleProduct", selectedStockProd);
 
-        alert(`تم شحن وتزويد رصيد (${selectedStockProd.n}) بـ ${addQty} قطعة وتحديث الكمية بـ Google Sheets بنجاح! الرصيد الجديد: ${selectedStockProd.q}`);
+        alert(`تم شحن وتزويد رصيد (${selectedStockProd.n}) بـ ${addQty} قطعة! الرصيد الجديد: ${selectedStockProd.q}`);
         document.getElementById('addStockCard').style.display = 'none';
         document.getElementById('addStockSearch').value = '';
         renderStockTable();
@@ -684,32 +737,26 @@
         const newPrice = parseFloat(prompt("💵 أدخل السعر التجاري الجديد (EGP):", prod.p)) || prod.p;
         const newQty = parseInt(prompt("📦 أدخل الكمية المتاحة بالمخزن:", prod.q)) || prod.q;
 
-        syncToCloud("editProduct", {
-            oldName: prod.n,
-            newName: newName,
-            price: newPrice,
-            qty: newQty
-        });
-
         prod.n = newName;
         prod.p = newPrice;
         prod.q = newQty;
         saveProductsToStorage();
 
-        alert(`✅ تم تعديل المنتج (${newName}) وتحديث البيانات بـ Google Sheets بنجاح!`);
+        syncToCloud("updateSingleProduct", prod);
+
+        alert(`✅ تم تعديل المنتج (${newName}) بنجاح!`);
         renderStockTable();
     }
 
     function deleteProductSystem(prodName) {
         if (!checkAdminPassword()) return;
 
-        if (confirm(`❌ هل أنت متأكد من حذف المنتج (${prodName}) تماماً من المخزن وجدول جوجل شيت؟`)) {
+        if (confirm(`❌ هل أنت متأكد من حذف المنتج (${prodName}) تماماً؟`)) {
             syncToCloud("deleteProduct", { name: prodName });
-
             products = products.filter(p => p.n !== prodName);
             saveProductsToStorage();
 
-            alert(`🗑️ تم حذف المنتج (${prodName}) نهائياً من البرنامج و Google Sheets!`);
+            alert(`🗑️ تم حذف المنتج (${prodName}) نهائياً!`);
             renderStockTable();
         }
     }
@@ -782,10 +829,10 @@
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>طباعة التقرير المالي</title>');
         win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;}</style>');
-        win.document.write('</head><body><h2>🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف</h2><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الحالة</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع</th><th>صافي الربح</th></tr></thead><tbody>');
+        win.document.write('</head><body><h2>🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف</h2><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع</th><th>صافي الربح</th></tr></thead><tbody>');
         filteredInvoices.forEach((inv, idx) => {
-            const itemsList = inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(', ') : '';
-            win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td>${inv.status}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
+            const itemsList = inv.itemsText || (inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(', ') : '');
+            win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
         });
         win.document.write('</tbody></table></body></html>');
         win.document.close();
@@ -819,26 +866,29 @@
 
         const tbody = document.getElementById('savedInvoicesBody');
         if (filteredInvoices.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>';
             return;
         }
 
         tbody.innerHTML = filteredInvoices.map((inv, index) => {
             let u = 0, eu = 0, g = 0, eg = 0, v = 0;
-            const itemsList = inv.items ? inv.items.map(i => {
-                u += parseFloat(i.usd || 0);
-                eu += parseFloat(i.eur || 0);
-                g += parseFloat(i.gbp || 0);
-                eg += parseFloat(i.egp || 0);
-                v += parseFloat(i.visa || 0);
-                return `• ${i.name} [الكمية: ${i.qty} | تجاري: ${(i.commTotal||0).toFixed(1)} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
-            }).join('<br>') : '';
+            let itemsList = "";
 
-            const payBreakdown = `$:${u || inv.usd || 0} | €:${eu || inv.eur || 0} | £:${g || inv.gbp || 0} | مصري:${eg || inv.egp || 0} | فيزا:${v || inv.visa || 0}`;
+            if (inv.items && Array.isArray(inv.items)) {
+                itemsList = inv.items.map(i => {
+                    u += parseFloat(i.usd || 0);
+                    eu += parseFloat(i.eur || 0);
+                    g += parseFloat(i.gbp || 0);
+                    eg += parseFloat(i.egp || 0);
+                    v += parseFloat(i.visa || 0);
+                    return `• ${i.name} [الكمية: ${i.qty} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
+                }).join('<br>');
+            } else {
+                itemsList = inv.itemsText || "تفاصيل محفوظة";
+                u = inv.usd || 0; eu = inv.eur || 0; g = inv.gbp || 0; eg = inv.egp || 0; v = inv.visa || 0;
+            }
 
-            const statusClass = inv.status === 'Canceled' ? 'badge-canceled' : (inv.status === 'Archived' ? 'badge-archived' : 'badge-active');
-            const statusLabel = inv.status === 'Canceled' ? 'ملغاة' : (inv.status === 'Archived' ? 'مؤرشفة' : 'مؤكدة');
-
+            const payBreakdown = `$:${u} | €:${eu} | £:${g} | مصري:${eg} | فيزا:${v}`;
             const cleanDateStr = inv.date ? inv.date.replace('T', ' ').replace('.000Z', '') : '-';
 
             return `
@@ -846,43 +896,26 @@
                 <td><span class="seq-num">${index + 1}</span></td>
                 <td style="font-weight:bold;">#${inv.id}</td>
                 <td style="white-space:nowrap;">${cleanDateStr}</td>
-                <td><span class="${statusClass}">${statusLabel}</span></td>
                 <td style="text-align:right; font-size:0.75rem; line-height:1.4;">${itemsList}</td>
                 <td style="font-size:0.72rem; color:#2c3e50;">${payBreakdown}</td>
                 <td style="color:#2c3e50; white-space:nowrap;">${(inv.totalComm || 0).toFixed(2)} ج.م</td>
                 <td style="color:#27ae60; font-weight:bold; white-space:nowrap;">${(inv.totalEGP || 0).toFixed(2)} ج.م</td>
-                <td style="color:#8e44ad; font-weight:bold; white-space:nowrap;">${(inv.netProfit || ((inv.totalEGP || 0) - (inv.totalComm || 0))).toFixed(2)} ج.م</td>
+                <td style="color:#8e44ad; font-weight:bold; white-space:nowrap;">${(inv.netProfit || 0).toFixed(2)} ج.م</td>
                 <td>
-                    <button class="btn btn-blue" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="editInvoiceSystem(${inv.id})">تعديل ✏️</button>
-                    ${inv.status === 'Active' ? `
-                        <button class="btn btn-orange" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="archiveInvoice(${inv.id})">أرشفة 📦</button>
-                    ` : ''}
+                    <button class="btn btn-blue" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="loadInvoiceToEdit(${inv.id})">تعديل ✏️</button>
                     <button class="btn btn-red" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="cancelInvoiceSystem(${inv.id})">حذف 🗑️</button>
                 </td>
             </tr>
         `;}).join('');
     }
 
-    function editInvoiceSystem(invId) {
+    function loadInvoiceToEdit(invId) {
         if (!checkInvoiceEditPassword()) return;
-
         const inv = savedInvoices.find(i => i.id === invId);
         if (!inv) return;
 
-        const newTotalSell = parseFloat(prompt("💵 أدخل إجمالي سعر البيع الجديد للفاتورة (EGP):", inv.totalEGP));
-        if (isNaN(newTotalSell)) return;
-
-        const newTotalComm = parseFloat(prompt("📦 أدخل إجمالي السعر التجاري الجديد للفاتورة (EGP):", inv.totalComm)) || inv.totalComm;
-        
-        inv.totalEGP = newTotalSell;
-        inv.totalComm = newTotalComm;
-        inv.netProfit = newTotalSell - newTotalComm;
-
-        saveInvoicesToStorage();
-        syncToCloud("archiveInvoice", inv);
-
-        alert(`✅ تم تعديل بيانات الفاتورة #${invId} وتحديث التقارير بنجاح!`);
-        generateReport();
+        showTab('salesTab');
+        loadInvoiceIntoForm(inv);
     }
 
     function cancelInvoiceSystem(invId) {
@@ -892,7 +925,7 @@
         if (invIdx === -1) return;
         const inv = savedInvoices[invIdx];
 
-        if (confirm(`❌ هل أنت متأكد من حذف وإلغاء الفاتورة رقم #${invId} نهائياً؟ سيتم إرجاع الكميات للمخزن وإزالتها تماماً.`)) {
+        if (confirm(`❌ هل أنت متأكد من حذف الفاتورة رقم #${invId} نهائياً؟`)) {
             if (inv.items && Array.isArray(inv.items)) {
                 inv.items.forEach(item => {
                     const pObj = products.find(p => p.n === item.name);
@@ -907,10 +940,10 @@
 
             savedInvoices.splice(invIdx, 1);
             saveInvoicesToStorage();
-
             syncToCloud("deleteInvoice", { id: invId });
 
-            alert(`🗑️ تم حذف الفاتورة #${invId} نهائياً وإعادتها للمخزن وتحديث الأرشيف!`);
+            alert(`🗑️ تم حذف الفاتورة #${invId} نهائياً!`);
+            prepareNewInvoice();
             generateReport();
         }
     }
@@ -922,7 +955,6 @@
         const toD = document.getElementById('toDate').value;
 
         const filteredInvoices = savedInvoices.filter(inv => {
-            if (inv.status === 'Canceled') return false;
             if (!inv.date) return true;
             const invD = inv.date.slice(0, 10);
             if (fromD && invD < fromD) return false;
@@ -936,7 +968,7 @@
         filteredInvoices.forEach(inv => {
             totalSell += inv.totalEGP || 0;
             totalComm += inv.totalComm || 0;
-            netProfit += inv.netProfit || ((inv.totalEGP || 0) - (inv.totalComm || 0));
+            netProfit += inv.netProfit || 0;
 
             if (inv.items && Array.isArray(inv.items)) {
                 inv.items.forEach(i => {
@@ -968,33 +1000,19 @@
         document.getElementById('profitBox').style.display = 'block';
     }
 
-    function archiveInvoice(invId) {
-        if (!checkAdminPassword()) return;
-        const inv = savedInvoices.find(i => i.id === invId);
-        if (!inv || inv.status === 'Archived' || inv.status === 'Canceled') return;
-
-        if (confirm(`هل تريد نقل الفاتورة رقم #${invId} للأرشيف وتثبيت أسعارها التاريخية؟`)) {
-            inv.status = 'Archived';
-            saveInvoicesToStorage();
-            
-            syncToCloud("archiveInvoice", inv);
-            
-            alert(`تم نقل الفاتورة #${invId} بنجاح إلى جدول الأرشيف السحابي بأسعارها القديمة 📦`);
-            generateReport();
-        }
-    }
-
     function exportReportToCSV() {
         if (savedInvoices.length === 0) return alert('لا توجد فواتير لتصديرها!');
 
-        let csvContent = "\uFEFFم,رقم الفاتورة,تاريخ الفاتورة,الحالة,الأصناف,دولار,يورو,إسترليني,مصري,فيزا,إجمالي التجاري,إجمالي البيع,صافي الربح\n";
+        let csvContent = "\uFEFFم,رقم الفاتورة,تاريخ الفاتورة,الأصناف,دولار,يورو,إسترليني,مصري,فيزا,إجمالي التجاري,إجمالي البيع,صافي الربح\n";
         savedInvoices.forEach((inv, idx) => {
-            const itemsStr = inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(' + ') : '';
+            const itemsStr = inv.itemsText || (inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(' + ') : '');
             let u = 0, eu = 0, g = 0, eg = 0, v = 0;
             if (inv.items && Array.isArray(inv.items)) {
                 inv.items.forEach(i => { u += i.usd||0; eu += i.eur||0; g += i.gbp||0; eg += i.egp||0; v += i.visa||0; });
+            } else {
+                u = inv.usd||0; eu = inv.eur||0; g = inv.gbp||0; eg = inv.egp||0; v = inv.visa||0;
             }
-            csvContent += `"${idx+1}","${inv.id}","${inv.date}","${inv.status}","${itemsStr}","${u}","${eu}","${g}","${eg}","${v}","${inv.totalComm||0}","${inv.totalEGP||0}","${inv.netProfit||0}"\n`;
+            csvContent += `"${idx+1}","${inv.id}","${inv.date}","${itemsStr}","${u}","${eu}","${g}","${eg}","${v}","${inv.totalComm||0}","${inv.totalEGP||0}","${inv.netProfit||0}"\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
