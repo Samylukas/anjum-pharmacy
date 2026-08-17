@@ -65,12 +65,19 @@
         .login-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #1e3c72; display: flex; justify-content: center; align-items: center; z-index: 9999999; }
         .login-card { background: white; padding: 25px; border-radius: 12px; text-align: center; width: 90%; max-width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .seq-num { font-weight: bold; color: #1e3c72; display: inline-block; width: 100%; text-align: center; }
+        
         .totals-box { background: #1e3c72; color: #fff; padding: 12px; border-radius: 8px; margin-top: 15px; }
         .totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; font-size: 0.75rem; text-align: center; }
         .total-item { background: rgba(255,255,255,0.1); padding: 6px 4px; border-radius: 6px; }
         .total-item span { display: block; font-weight: bold; font-size: 0.85rem; color: #f1c40f; margin-top: 2px; }
         .date-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
         .date-filter input { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; }
+
+        /* تنسيق شريط تجميع الفاتورة الحالية */
+        .live-invoice-summary { background: #1e3c72; color: white; border-radius: 8px; padding: 10px; margin-top: 12px; }
+        .live-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 6px; text-align: center; font-size: 0.75rem; }
+        .live-summary-item { background: rgba(255,255,255,0.12); padding: 5px; border-radius: 5px; }
+        .live-summary-item span { display: block; color: #f1c40f; font-weight: bold; font-size: 0.85rem; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -166,6 +173,19 @@
                 <tr><td colspan="7" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>
             </tbody>
         </table></div>
+
+        <!-- شريط الإجمالي التجميعي المباشر لكل عملة وللإجمالي النهائي -->
+        <div class="live-invoice-summary">
+            <h4 style="text-align:center; font-size:0.85rem; margin-bottom:6px; color:#f1c40f;">💵 إجمالي الفاتورة الحالية المجمع بالعملات والجنيه:</h4>
+            <div class="live-summary-grid">
+                <div class="live-summary-item">دولار ($)<span id="liveUSD">$0</span></div>
+                <div class="live-summary-item">يورو (€)<span id="liveEUR">€0</span></div>
+                <div class="live-summary-item">إسترليني (£)<span id="liveGBP">£0</span></div>
+                <div class="live-summary-item">مصري (EGP)<span id="liveEGP">0 ج.م</span></div>
+                <div class="live-summary-item">فيزا (Visa)<span id="liveVISA">0 ج.م</span></div>
+                <div class="live-summary-item" style="background:rgba(46,204,113,0.3); border:1px solid #27ae60;">الإجمالي بالجنيه<span id="liveTotalEGP" style="color:#fff; font-size:0.95rem;">0.00 ج.م</span></div>
+            </div>
+        </div>
 
         <button class="btn btn-blue" style="margin-top: 15px; font-size: 1.1rem; padding: 12px;" onclick="saveInvoice()">حفظ وتقفيل الفاتورة والمزامنة 💾</button>
     </div>
@@ -621,24 +641,42 @@
         renderInvoice();
     }
 
+    // دالة عرض وتحديث جدول الأصناف والشريط التجميعي للعملات المباشر
     function renderInvoice() {
         const tbody = document.getElementById('invoiceTableBody');
+        let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0, totalSellEGP = 0;
+
         if (invoiceItems.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>';
-            return;
+        } else {
+            tbody.innerHTML = invoiceItems.map((item, index) => {
+                sumUSD += parseFloat(item.usd || 0);
+                sumEUR += parseFloat(item.eur || 0);
+                sumGBP += parseFloat(item.gbp || 0);
+                sumEGP += parseFloat(item.egp || 0);
+                sumVISA += parseFloat(item.visa || 0);
+                totalSellEGP += parseFloat(item.sellTotal || 0);
+
+                return `
+                <tr>
+                    <td style="font-weight:bold;">${index + 1}</td>
+                    <td style="font-weight:bold; text-align:right;">${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>${(item.commTotal||0).toFixed(2)} ج.م</td>
+                    <td>$:${item.usd||0} | €:${item.eur||0} | £:${item.gbp||0} | مصري:${item.egp||0} | فيزا:${item.visa||0}</td>
+                    <td style="color:#27ae60; font-weight:bold;">${(item.sellTotal||0).toFixed(2)} ج.م</td>
+                    <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="removeInvoiceItem(${index})">حذف</button></td>
+                </tr>
+            `;}).join('');
         }
 
-        tbody.innerHTML = invoiceItems.map((item, index) => `
-            <tr>
-                <td style="font-weight:bold;">${index + 1}</td>
-                <td style="font-weight:bold; text-align:right;">${item.name}</td>
-                <td>${item.qty}</td>
-                <td>${(item.commTotal||0).toFixed(2)} ج.م</td>
-                <td>$:${item.usd||0} | €:${item.eur||0} | £:${item.gbp||0} | مصري:${item.egp||0} | فيزا:${item.visa||0}</td>
-                <td style="color:#27ae60; font-weight:bold;">${(item.sellTotal||0).toFixed(2)} ج.م</td>
-                <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="removeInvoiceItem(${index})">حذف</button></td>
-            </tr>
-        `).join('');
+        // تحديث قيم الشريط التجميعي المباشر فوق زر الحفظ
+        document.getElementById('liveUSD').textContent = '$' + sumUSD.toFixed(2);
+        document.getElementById('liveEUR').textContent = '€' + sumEUR.toFixed(2);
+        document.getElementById('liveGBP').textContent = '£' + sumGBP.toFixed(2);
+        document.getElementById('liveEGP').textContent = sumEGP.toFixed(2) + ' ج.م';
+        document.getElementById('liveVISA').textContent = sumVISA.toFixed(2) + ' ج.م';
+        document.getElementById('liveTotalEGP').textContent = totalSellEGP.toFixed(2) + ' ج.م';
     }
 
     function syncToCloud(actionType, data) {
