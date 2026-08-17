@@ -1009,7 +1009,7 @@
         setTimeout(() => win.print(), 300);
     }
 
-    // دالة تصدير الـ PDF بدون تداخل العناوين وبدون عبارة "تاريخ التصدير:"
+    // دالة تصدير الـ PDF - تم الاعتماد فيها على جدول تنسيقي تثبيتي يمنع تداخل النصوص تماماً
     function exportReportPDF() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -1053,12 +1053,25 @@
         element.style.fontFamily = 'system-ui, sans-serif';
         element.style.background = '#ffffff';
 
+        // استخدام جدول لتثبيت العنوان ومنع التداخل تماماً بخلية إنجليزية مستقلة
         let htmlContent = `
-            <div style="text-align:center; margin-bottom:15px; border-bottom:2px solid #1e3c72; padding-bottom:8px;">
-                <div style="font-size:20px; font-weight:bold; color:#1e3c72; margin-bottom:6px;">Anjum Green Pharmacy 🌿</div>
-                <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:6px;">تقرير المبيعات والأرشيف المالي</div>
-                <div style="font-size:11px; color:#555;">${new Date().toLocaleString('ar-EG')}</div>
-            </div>
+            <table style="width:100%; border:none; border-collapse:collapse; margin-bottom:12px; border-bottom:2px solid #1e3c72; padding-bottom:8px;">
+                <tr>
+                    <td style="text-align:center; border:none; padding:2px;">
+                        <div style="font-size:20px; font-weight:bold; color:#1e3c72; direction:ltr; unicode-bidi:embed;">Anjum Green Pharmacy 🌿</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:center; border:none; padding:2px;">
+                        <div style="font-size:14px; font-weight:bold; color:#333;">تقرير المبيعات والأرشيف المالي</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="text-align:center; border:none; padding:2px;">
+                        <div style="font-size:11px; color:#555; direction:ltr;">${new Date().toLocaleString('ar-EG')}</div>
+                    </td>
+                </tr>
+            </table>
             
             <table style="width:100%; border-collapse:collapse; margin-bottom:15px; background:#fff;">
                 <thead>
