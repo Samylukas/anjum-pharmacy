@@ -103,7 +103,6 @@
             <div>رقم الفاتورة: <span id="invNum" style="color: #1e3c72; font-size: 1.2rem; font-weight: bold;">1001</span></div>
         </div>
 
-        <!-- أزرار التنقل بين السجلات -->
         <div class="nav-controls">
             <button class="btn btn-blue" onclick="navigateInvoice('first')">⏮️ أول سجل</button>
             <button class="btn btn-blue" onclick="navigateInvoice('prev')">◀️ السابق</button>
@@ -943,8 +942,9 @@
             syncToCloud("deleteInvoice", { id: invId });
 
             alert(`🗑️ تم حذف الفاتورة #${invId} نهائياً!`);
-            prepareNewInvoice();
-            generateReport();
+            
+            // إعادة ضبط وتحديد رقم الفاتورة التالي أوتوماتيكياً
+            fetchCloudInvoicesData();
         }
     }
 
