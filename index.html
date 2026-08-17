@@ -901,7 +901,6 @@
         });
     }
 
-    // دالة طباعة الإيصال الفردي المحدثة لعرض جميع الأصناف بالكامل
     function printSingleReceipt(invId) {
         const inv = savedInvoices.find(i => i.id === invId);
         if (!inv) return;
@@ -1010,15 +1009,151 @@
         setTimeout(() => win.print(), 300);
     }
 
+    // دالة تصدير الـ PDF الشاملة والمعدلة بالكامل مع جدول الإجماليات المالي النهائي
     function exportReportPDF() {
-        const element = document.getElementById('reportsPrintArea');
+        const fromD = document.getElementById('fromDate').value;
+        const toD = document.getElementById('toDate').value;
+
+        const filteredInvoices = savedInvoices.filter(inv => {
+            if (!inv.date) return true;
+            const invD = inv.date.slice(0, 10);
+            if (fromD && invD < fromD) return false;
+            if (toD && invD > toD) return false;
+            return true;
+        });
+
+        let totalCommAll = 0, totalSellEGPAll = 0, totalProfitAll = 0;
+        let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0;
+
+        filteredInvoices.forEach(inv => {
+            totalCommAll += parseFloat(inv.totalComm || 0);
+            totalSellEGPAll += parseFloat(inv.totalEGP || 0);
+            totalProfitAll += parseFloat(inv.netProfit || 0);
+
+            if (inv.items && Array.isArray(inv.items)) {
+                inv.items.forEach(i => {
+                    sumUSD += parseFloat(i.usd || 0);
+                    sumEUR += parseFloat(i.eur || 0);
+                    sumGBP += parseFloat(i.gbp || 0);
+                    sumEGP += parseFloat(i.egp || 0);
+                    sumVISA += parseFloat(i.visa || 0);
+                });
+            } else {
+                sumUSD += parseFloat(inv.usd || 0);
+                sumEUR += parseFloat(inv.eur || 0);
+                sumGBP += parseFloat(inv.gbp || 0);
+                sumEGP += parseFloat(inv.egp || 0);
+                sumVISA += parseFloat(inv.visa || 0);
+            }
+        });
+
+        // إنشاء حاوية مؤقتة للـ PDF بدون أزرار وبجدول إجماليات منسق
+        const element = document.createElement('div');
+        element.style.padding = '15px';
+        element.style.direction = 'rtl';
+        element.style.fontFamily = 'system-ui, sans-serif';
+
+        let htmlContent = `
+            <h2 style="text-align:center; color:#1e3c72; margin-bottom:5px;">🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف المالي</h2>
+            <p style="text-align:center; font-size:11px; margin-bottom:15px; color:#555;">تاريخ التصدير: ${new Date().toLocaleString('ar-EG')}</p>
+            
+            <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+                <thead>
+                    <tr style="background:#1e3c72; color:#fff;">
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">م</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">رقم الفاتورة</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">التاريخ</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">تفاصيل الأصناف المباعة</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">طرق الدفع والعملات</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">إجمالي التجاري</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">إجمالي البيع (EGP)</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">صافي الربح</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        filteredInvoices.forEach((inv, index) => {
+            let u = 0, eu = 0, g = 0, eg = 0, v = 0;
+            let itemsList = "";
+
+            if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
+                itemsList = inv.items.map(i => {
+                    u += parseFloat(i.usd || 0);
+                    eu += parseFloat(i.eur || 0);
+                    g += parseFloat(i.gbp || 0);
+                    eg += parseFloat(i.egp || 0);
+                    v += parseFloat(i.visa || 0);
+                    return `• ${i.name} [الكمية: ${i.qty} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
+                }).join('<br>');
+            } else {
+                itemsList = cleanItemSummaryText(inv.itemsText).split(' | ').map(item => `• ${item}`).join('<br>');
+                u = inv.usd || 0; eu = inv.eur || 0; g = inv.gbp || 0; eg = inv.egp || 0; v = inv.visa || 0;
+            }
+
+            const payBreakdown = `$:${u} | €:${eu} | £:${g} | مصري:${eg} | فيزا:${v}`;
+            const cleanDateStr = inv.date ? inv.date.replace('T', ' ').replace('.000Z', '') : '-';
+
+            htmlContent += `
+                <tr>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px;">${index + 1}</td>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; font-weight:bold;">#${inv.id}</td>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; white-space:nowrap;">${cleanDateStr}</td>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:right; font-size:9px; line-height:1.3;">${itemsList}</td>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:8px;">${payBreakdown}</td>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px;">${(inv.totalComm || 0).toFixed(2)} ج.م</td>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#27ae60;">${(inv.totalEGP || 0).toFixed(2)} ج.م</td>
+                    <td style="border:1px solid #ddd; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#8e44ad;">${(inv.netProfit || 0).toFixed(2)} ج.م</td>
+                </tr>
+            `;
+        });
+
+        // إضافة جدول الإجماليات المالي المجمع لكل عملة بنهاية ملف الـ PDF
+        htmlContent += `
+                </tbody>
+            </table>
+
+            <div style="margin-top:15px; background:#1e3c72; color:#fff; border-radius:6px; padding:10px;">
+                <h3 style="text-align:center; font-size:12px; margin-bottom:8px; color:#f1c40f;">💵 التقرير المالي المجمع والعملات للتقرير</h3>
+                <table style="width:100%; border-collapse:collapse; color:#fff; text-align:center; font-size:9px;">
+                    <thead>
+                        <tr style="background:rgba(255,255,255,0.15);">
+                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض ($)</th>
+                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض (€)</th>
+                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض (£)</th>
+                            <th style="border:1px solid #fff; padding:4px;">إجمالي المقبوض (EGP)</th>
+                            <th style="border:1px solid #fff; padding:4px;">إجمالي الفيزا (Visa)</th>
+                            <th style="border:1px solid #fff; padding:4px;">إجمالي المبيعات كلياً</th>
+                            <th style="border:1px solid #fff; padding:4px;">إجمالي التجاري</th>
+                            <th style="border:1px solid #fff; padding:4px;">صافي الأرباح المتبقية</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">$${sumUSD.toFixed(2)}</td>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">€${sumEUR.toFixed(2)}</td>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">£${sumGBP.toFixed(2)}</td>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">${sumEGP.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold;">${sumVISA.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold; color:#2ecc71;">${totalSellEGPAll.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold; color:#e74c3c;">${totalCommAll.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #fff; padding:5px; font-weight:bold; color:#f1c40f;">${totalProfitAll.toFixed(2)} ج.م</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        element.innerHTML = htmlContent;
+
         const opt = {
-            margin:       0.3,
-            filename:     'Anjum_Green_Pharmacy_Report_2026.pdf',
+            margin:       0.2,
+            filename:     `Anjum_Green_Pharmacy_Full_Report_${new Date().toISOString().slice(0,10)}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
         };
+
         html2pdf().set(opt).from(element).save();
     }
 
