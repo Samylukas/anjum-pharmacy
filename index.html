@@ -901,6 +901,7 @@
         });
     }
 
+    // دالة طباعة الإيصال الفردي المحدثة لعرض جميع الأصناف بالكامل
     function printSingleReceipt(invId) {
         const inv = savedInvoices.find(i => i.id === invId);
         if (!inv) return;
@@ -908,14 +909,17 @@
         const win = window.open('', '', 'height=600,width=400');
         win.document.write('<html><head><title>إيصال بيع #' + inv.id + '</title>');
         win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:10px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:4px;font-size:11px;} th{background:#1e3c72;color:#fff;}</style>');
-        win.document.write('</head><body><h3>🌿 Anjum Green Pharmacy</h3><p>فاتورة بيع رقم: <b>#' + inv.id + '</b></p><p>التاريخ: ' + (inv.date||'') + '</p><table><thead><tr><th>الصنف</th><th>الكمية</th><th>البيع</th></tr></thead><tbody>');
+        win.document.write('</head><body><h3>🌿 Anjum Green Pharmacy</h3><p>فاتورة بيع رقم: <b>#' + inv.id + '</b></p><p>التاريخ: ' + (inv.date||'').replace('T', ' ').replace('.000Z', '') + '</p><table><thead><tr><th>الصنف</th><th>الكمية والتفاصيل</th></tr></thead><tbody>');
         
-        if (inv.items && Array.isArray(inv.items)) {
+        if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
             inv.items.forEach(i => {
-                win.document.write(`<tr><td style="text-align:right;">${i.name}</td><td>${i.qty}</td><td>${i.sellTotal.toFixed(2)} ج.م</td></tr>`);
+                win.document.write(`<tr><td style="text-align:right;">${i.name}</td><td>العدد: ${i.qty} - بيع: ${i.sellTotal.toFixed(2)} ج.م</td></tr>`);
             });
         } else {
-            win.document.write(`<tr><td colspan="3">${cleanItemSummaryText(inv.itemsText)}</td></tr>`);
+            let itemsArray = cleanItemSummaryText(inv.itemsText).split(' | ');
+            itemsArray.forEach(itm => {
+                win.document.write(`<tr><td colspan="2" style="text-align:right;">• ${itm}</td></tr>`);
+            });
         }
 
         win.document.write(`</tbody></table><h4 style="margin-top:10px; text-align:left;">الإجمالي النهائي: ${inv.totalEGP.toFixed(2)} ج.م</h4><p style="font-size:10px; margin-top:15px;">شكراً لزيارتكم Anjum Green Pharmacy!</p></body></html>`);
@@ -1018,7 +1022,6 @@
         html2pdf().set(opt).from(element).save();
     }
 
-    // دالة عرض تقارير المبيعات المحدثة بالكامل وبدون قص أي صنف
     function generateReport() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
