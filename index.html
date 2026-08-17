@@ -695,7 +695,8 @@
             totalSell += i.sellTotal;
             totalComm += i.commTotal;
             totalProfit += i.netProfit;
-            itemsSummaryText.push(`${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`);
+            // استخدام رمز RLM لمنع انقشاع أو انقلاب الأقواس
+            itemsSummaryText.push(`${i.name} &rlm;(العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)&rlm;`);
 
             const pObj = products.find(p => p.n === i.name);
             if (pObj) syncToCloud("updateSingleProduct", pObj);
@@ -966,7 +967,7 @@
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>طباعة التقرير المالي</title>');
         win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #333;padding:6px;font-weight:bold;}</style>');
-        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات </h3><p>' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
+        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات والأرشيف المالي</h3><p>' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
             const itemsList = inv.items ? inv.items.map(i => `${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`).join(' | ') : cleanItemSummaryText(inv.itemsText);
@@ -1009,7 +1010,7 @@
         setTimeout(() => win.print(), 300);
     }
 
-    // دالة تصدير الـ PDF المثالية المصلحة لمنع تداخل العناوين بالكامل
+    // دالة تصدير الـ PDF - مصلحة بالكامل لمنع عكس أو انقلاب الأقواس
     function exportReportPDF() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -1062,7 +1063,7 @@
                 </tr>
                 <tr>
                     <td style="text-align:center; border:none; padding:2px;">
-                        <div style="font-size:14px; font-weight:bold; color:#333;">تقرير المبيعات </div>
+                        <div style="font-size:14px; font-weight:bold; color:#333;">تقرير المبيعات والأرشيف المالي</div>
                     </td>
                 </tr>
                 <tr>
@@ -1099,6 +1100,7 @@
                     g += parseFloat(i.gbp || 0);
                     eg += parseFloat(i.egp || 0);
                     v += parseFloat(i.visa || 0);
+                    // إضافة رمز RLM لمنع اعتلاء وانقلاب الأقواس عند تحويل النص لـ PDF
                     return `• ${i.name} &rlm;(العدد: ${i.qty} - بيع: ${(i.sellTotal||0).toFixed(1)} ج.م)&rlm;`;
                 }).join('<br>');
             } else {
@@ -1128,7 +1130,7 @@
             </table>
 
             <div style="margin-top:15px; background:#ffffff; color:#333; border:2px solid #1e3c72; border-radius:6px; padding:8px;">
-                <h3 style="text-align:center; font-size:11px; margin:0 0 6px 0; color:#1e3c72;">💵 الإجمالي المجمع </h3>
+                <h3 style="text-align:center; font-size:11px; margin:0 0 6px 0; color:#1e3c72;">💵 التقرير المالي المجمع والعملات للتقرير</h3>
                 <table style="width:100%; border-collapse:collapse; text-align:center; font-size:9px; background:#fff;">
                     <thead>
                         <tr style="background:#f0f4f8; color:#1e3c72;">
