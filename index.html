@@ -436,7 +436,7 @@
             invoiceItems = JSON.parse(JSON.stringify(inv.items));
         } else {
             invoiceItems = [{
-                name: inv.itemsText || "صنف محفوظ",
+                name: cleanItemSummaryText(inv.itemsText),
                 qty: 1,
                 commUnitPrice: inv.totalComm || 0,
                 sellUnitPrice: inv.totalEGP || 0,
@@ -447,6 +447,13 @@
             }];
         }
         renderInvoice();
+    }
+
+    function cleanItemSummaryText(rawText) {
+        if (!rawText) return "صنف محفوظ";
+        // تنظيف وحذف أي نصوص مكررة قديمة
+        let clean = rawText.split('[')[0].split('|')[0].trim();
+        return clean || "صنف محفوظ";
     }
 
     function navigateInvoice(direction) {
@@ -656,6 +663,7 @@
             totalSell += i.sellTotal;
             totalComm += i.commTotal;
             totalProfit += i.netProfit;
+            // صياغة النص النظيف للأصناف المباعة
             itemsSummaryText.push(`${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`);
 
             const pObj = products.find(p => p.n === i.name);
@@ -876,7 +884,7 @@
                 win.document.write(`<tr><td style="text-align:right;">${i.name}</td><td>${i.qty}</td><td>${i.sellTotal.toFixed(2)} ج.م</td></tr>`);
             });
         } else {
-            win.document.write(`<tr><td colspan="3">${inv.itemsText||''}</td></tr>`);
+            win.document.write(`<tr><td colspan="3">${cleanItemSummaryText(inv.itemsText)}</td></tr>`);
         }
 
         win.document.write(`</tbody></table><h4 style="margin-top:10px; text-align:left;">الإجمالي النهائي: ${inv.totalEGP.toFixed(2)} ج.م</h4><p style="font-size:10px; margin-top:15px;">شكراً لزيارتكم Anjum Green Pharmacy!</p></body></html>`);
@@ -927,7 +935,7 @@
         win.document.write('</head><body><h2>🌿 Anjum Green Pharmacy - تقرير المبيعات والأرشيف المالي</h2><p>تاريخ الطباعة: ' + new Date().toLocaleString('ar-EG') + '</p><table><thead><tr><th>م</th><th>رقم الفاتورة</th><th>التاريخ</th><th>الأصناف والتفاصيل</th><th>التجاري</th><th>البيع (EGP)</th><th>صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
-            const itemsList = inv.itemsText || (inv.items ? inv.items.map(i => `${i.name} (x${i.qty})`).join(', ') : '');
+            const itemsList = inv.items ? inv.items.map(i => `${i.name} (العدد: ${i.qty} - بيع: ${i.sellTotal} ج.م)`).join(' | ') : cleanItemSummaryText(inv.itemsText);
             win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
         });
 
@@ -1011,7 +1019,7 @@
                     return `• ${i.name} [الكمية: ${i.qty} | بيع: ${(i.sellTotal||0).toFixed(1)}]`;
                 }).join('<br>');
             } else {
-                itemsList = inv.itemsText || "تفاصيل محفوظة";
+                itemsList = cleanItemSummaryText(inv.itemsText);
                 u = inv.usd || 0; eu = inv.eur || 0; g = inv.gbp || 0; eg = inv.egp || 0; v = inv.visa || 0;
             }
 
