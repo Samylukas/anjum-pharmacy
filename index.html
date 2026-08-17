@@ -1009,7 +1009,7 @@
         setTimeout(() => win.print(), 300);
     }
 
-    // دالة تصدير الـ PDF - تم الاعتماد فيها على جدول تنسيقي تثبيتي يمنع تداخل النصوص تماماً
+    // دالة تصدير الـ PDF المثالية المصلحة لمنع تداخل العناوين بالكامل
     function exportReportPDF() {
         const fromD = document.getElementById('fromDate').value;
         const toD = document.getElementById('toDate').value;
@@ -1053,12 +1053,11 @@
         element.style.fontFamily = 'system-ui, sans-serif';
         element.style.background = '#ffffff';
 
-        // استخدام جدول لتثبيت العنوان ومنع التداخل تماماً بخلية إنجليزية مستقلة
         let htmlContent = `
             <table style="width:100%; border:none; border-collapse:collapse; margin-bottom:12px; border-bottom:2px solid #1e3c72; padding-bottom:8px;">
                 <tr>
                     <td style="text-align:center; border:none; padding:2px;">
-                        <div style="font-size:20px; font-weight:bold; color:#1e3c72; direction:ltr; unicode-bidi:embed;">Anjum Green Pharmacy 🌿</div>
+                        <div style="font-size:20px; font-weight:bold; color:#1e3c72; direction:ltr; unicode-bidi:embed;">Anjum Green Pharmacy</div>
                     </td>
                 </tr>
                 <tr>
