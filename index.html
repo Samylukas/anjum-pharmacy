@@ -30,7 +30,7 @@
 
         .section-title { font-weight: bold; margin-bottom: 10px; color: #1e3c72; border-bottom: 2px solid #3498db; padding-bottom: 5px; font-size: 1rem; }
         
-        .search-box { width: 100%; padding: 10px; font-size: 14px; border: 2px solid #3498db; border-radius: 8px; outline: none; margin-bottom: 8px; box-sizing: border-box; }
+        .search-box { width: 100%; padding: 10px; font-size: 14px; border: 2px solid #3498db; border-radius: 8px; outline: none; margin-bottom: 8px; box-sizing: border-box; direction: ltr; text-align: left; }
         .results-list { max-height: 200px; overflow-y: auto; border: 2px solid #3498db; border-radius: 8px; margin-bottom: 12px; display: none; background: #ffffff; position: relative; z-index: 99999; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .result-item { padding: 8px 10px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 0.85rem; }
 
@@ -66,11 +66,6 @@
         .live-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 6px; text-align: center; font-size: 0.75rem; }
         .live-summary-item { background: rgba(255,255,255,0.12); padding: 5px; border-radius: 5px; }
         .live-summary-item span { display: block; color: #f1c40f; font-weight: bold; font-size: 0.85rem; margin-top: 2px; }
-        
-        .totals-box { background: #1e3c72; color: #fff; padding: 12px; border-radius: 8px; margin-top: 15px; }
-        .totals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 6px; font-size: 0.75rem; text-align: center; }
-        .total-item { background: rgba(255,255,255,0.1); padding: 6px 4px; border-radius: 6px; }
-        .total-item span { display: block; font-weight: bold; font-size: 0.85rem; color: #f1c40f; margin-top: 2px; }
 
         .modal { display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
         .modal-content { background-color: white; padding: 20px; border-radius: 8px; text-align: center; width: 300px; }
@@ -80,7 +75,6 @@
 </head>
 <body>
 
-<!-- شاشة تسجيل الدخول -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-card">
         <h2 style="color:#1e3c72; margin-bottom:15px; font-size:1.2rem;">🔐 Anjum Green Pharmacy</h2>
@@ -89,7 +83,6 @@
     </div>
 </div>
 
-<!-- نافذة أدخال كلمة السر المنبثقة -->
 <div id="passwordModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-bottom:10px; color:#1e3c72;">🔐 Enter Password</h3>
@@ -113,12 +106,12 @@
         <button class="tab-btn" onclick="showTab('reportsTab', event)">🔒 📊 Financial Reports</button>
     </div>
 
-    <!-- 1. البيع المباشر -->
+    <!-- 1. Direct Sales -->
     <div id="salesTab" class="tab-content active">
         <div class="section-title">🛒 Create & Edit Sales Invoice</div>
 
         <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
-            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 Sync & Invoice Controls:</div>
+            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 Sync Controls:</div>
             <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">Fetch Data 🔄</button>
             <button class="btn btn-orange" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="prepareNewInvoice()">New Invoice ➕</button>
         </div>
@@ -128,7 +121,6 @@
             <div>Invoice ID: <span id="invNum" style="color: #1e3c72; font-size: 1.2rem; font-weight: bold;">1001</span></div>
         </div>
 
-        <!-- أزرار التنقل بين الفواتير -->
         <div class="nav-controls">
             <button class="btn btn-blue" onclick="navigateInvoice('first')">⏮️ First</button>
             <button class="btn btn-blue" onclick="navigateInvoice('prev')">◀️ Previous</button>
@@ -197,7 +189,7 @@
         <button class="btn btn-blue" style="margin-top: 15px; font-size: 1.1rem; padding: 12px;" onclick="saveInvoice()">Save & Sync Invoice 💾</button>
     </div>
 
-    <!-- 2. الإيرادات والمصروفات -->
+    <!-- 2. Income & Expenses -->
     <div id="expensesTab" class="tab-content">
         <div class="section-title">💵 Daily Income & Expenses Log (EGP)</div>
         <div class="card" style="background:#f4f9f9;">
@@ -242,7 +234,7 @@
         </div>
     </div>
 
-    <!-- 3. المخزن -->
+    <!-- 3. Stock Status -->
     <div id="stockTab" class="tab-content">
         <div class="section-title">📦 Inventory & Stock Details</div>
         <input type="text" id="stockFilterInput" class="search-box" placeholder="Filter stock by name..." oninput="renderStockTable(this.value)">
@@ -262,7 +254,7 @@
         </div>
     </div>
 
-    <!-- 4. إضافة مخزون -->
+    <!-- 4. Add Item -->
     <div id="addStockTab" class="tab-content">
         <div class="section-title">➕ Add New Item to Cloud Inventory</div>
         <div class="card" style="background:#eef7fe;">
@@ -275,7 +267,7 @@
         </div>
     </div>
 
-    <!-- 5. التقارير والعملات المجمعة -->
+    <!-- 5. Reports -->
     <div id="reportsTab" class="tab-content">
         <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
             <span>📊 Financial Reports & Archive</span>
@@ -286,22 +278,7 @@
             <div>From Date: <input type="date" id="fromDate"></div>
             <div>To Date: <input type="date" id="toDate"></div>
             <button class="btn btn-blue" style="width: auto; margin-top: 0;" onclick="generateReport()">Filter Reports 📈</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="calculateNetProfit()">Profit & Currency Totals 📊</button>
             <button class="btn btn-orange" style="width: auto; margin-top: 0;" onclick="exportReportPDF()">Export PDF 📄</button>
-        </div>
-
-        <div id="profitBox" class="totals-box" style="display:none; background:#1e3c72; margin-bottom:15px;">
-            <h3 style="text-align:center; margin-bottom:10px;">💵 Combined Currency & Profit Report</h3>
-            <div class="totals-grid">
-                <div class="total-item">USD ($) <span id="repTotalUSD">$0.00</span></div>
-                <div class="total-item">EUR (€) <span id="repTotalEUR">€0.00</span></div>
-                <div class="total-item">GBP (£) <span id="repTotalGBP">£0.00</span></div>
-                <div class="total-item">EGP (EGP) <span id="repTotalEGP">0.00 EGP</span></div>
-                <div class="total-item">Visa <span id="repTotalVISA">0.00 EGP</span></div>
-                <div class="total-item" style="background:rgba(46,204,113,0.2);">Total Sales <span id="repTotalSell">0.00 EGP</span></div>
-                <div class="total-item" style="background:rgba(231,76,60,0.2);">Commercial Total <span id="repTotalComm">0.00 EGP</span></div>
-                <div class="total-item" style="background:#27ae60; grid-column: span 2;">Net Profit <span id="repNetProfit" style="font-size:1.1rem; color:#fff;">0.00 EGP</span></div>
-            </div>
         </div>
 
         <div class="table-responsive" id="reportsPrintArea"><table>
@@ -311,15 +288,11 @@
                     <th>Invoice ID</th>
                     <th>Date</th>
                     <th>Sold Items & Details</th>
-                    <th>Payment Breakdown</th>
-                    <th>Commercial Total</th>
-                    <th>Total Sales (EGP)</th>
-                    <th>Net Profit</th>
-                    <th style="width:160px;">Actions</th>
+                    <th style="width:120px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="savedInvoicesBody">
-                <tr><td colspan="9" style="color:#7f8c8d;">No saved invoices found</td></tr>
+                <tr><td colspan="5" style="color:#7f8c8d;">No saved invoices found</td></tr>
             </tbody>
         </table></div>
     </div>
@@ -425,8 +398,8 @@
 
         window.handleCloudInvoicesResponse = function(resData) {
             if (resData && resData.status === "success") {
-                if (resData.products && resData.products.length > 0) products = resData.products;
-                if (resData.invoices && resData.invoices.length > 0) savedInvoices = resData.invoices;
+                if (resData.products) products = resData.products;
+                if (resData.invoices) savedInvoices = resData.invoices;
                 if (resData.expenses) expensesList = resData.expenses;
                 if (resData.nextInvoiceId) invoiceCounter = resData.nextInvoiceId;
 
@@ -483,10 +456,10 @@
             invoiceItems = [{
                 name: inv.itemsText || "Saved Item",
                 qty: 1,
-                commTotal: inv.totalComm || 0,
-                sellTotal: inv.totalEGP || 0,
-                netProfit: inv.netProfit || 0,
-                usd: inv.usd||0, eur: inv.eur||0, gbp: inv.gbp||0, egp: inv.egp||0, visa: inv.visa||0
+                commTotal: 0,
+                sellTotal: 0,
+                netProfit: 0,
+                usd: 0, eur: 0, gbp: 0, egp: 0, visa: 0
             }];
         }
         renderInvoice();
@@ -532,7 +505,6 @@
     function addToInvoice() {
         if (!selectedProd) return;
         const qty = parseInt(document.getElementById('sellQty').value) || 1;
-        if (qty > selectedProd.stock) return alert('⚠️ Quantity not available in stock!');
 
         const u = parseFloat(document.getElementById('pUSD').value) || 0;
         const eu = parseFloat(document.getElementById('pEUR').value) || 0;
@@ -632,11 +604,6 @@
 
         syncToCloud("saveInvoice", savedInv);
 
-        invoiceItems.forEach(i => {
-            const pObj = products.find(p => p.n === i.name);
-            if (pObj) syncToCloud("updateSingleProduct", pObj);
-        });
-
         alert(`Invoice #${activeInvoiceId} saved & synced!`);
         prepareNewInvoice();
         generateReport();
@@ -693,101 +660,30 @@
 
         const tbody = document.getElementById('savedInvoicesBody');
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="color:#7f8c8d;">No saved invoices found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="color:#7f8c8d;">No saved invoices found</td></tr>';
             return;
         }
 
         tbody.innerHTML = filtered.map((inv, index) => {
-            let u = 0, eu = 0, g = 0, eg = 0, v = 0;
             let itemsList = "";
-
             if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
-                itemsList = inv.items.map(i => {
-                    u += parseFloat(i.usd || 0);
-                    eu += parseFloat(i.eur || 0);
-                    g += parseFloat(i.gbp || 0);
-                    eg += parseFloat(i.egp || 0);
-                    v += parseFloat(i.visa || 0);
-                    return `• ${getItemPaidText(i)}`;
-                }).join('<br>');
+                itemsList = inv.items.map(i => `• ${getItemPaidText(i)}`).join('<br>');
             } else {
                 itemsList = (inv.itemsText || "").split(' | ').map(item => `• ${item}`).join('<br>');
-                u = inv.usd || 0; eu = inv.eur || 0; g = inv.gbp || 0; eg = inv.egp || 0; v = inv.visa || 0;
             }
-
-            const payBreakdown = `$:${u} | €:${eu} | £:${g} | EGP:${eg} | Visa:${v}`;
 
             return `<tr>
                 <td><span class="seq-num">${index + 1}</span></td>
                 <td style="font-weight:bold;">#${inv.id}</td>
                 <td>${inv.date ? inv.date.replace('T', ' ').replace('.000Z', '') : '-'}</td>
                 <td style="text-align:right; font-size:0.75rem;">${itemsList}</td>
-                <td style="font-size:0.72rem; color:#2c3e50;">${payBreakdown}</td>
-                <td style="color:#2c3e50; white-space:nowrap;">${(inv.totalComm || 0).toFixed(2)} EGP</td>
-                <td style="color:#27ae60; font-weight:bold; white-space:nowrap;">${(inv.totalEGP || 0).toFixed(2)} EGP</td>
-                <td style="color:#8e44ad; font-weight:bold; white-space:nowrap;">${(inv.netProfit || 0).toFixed(2)} EGP</td>
                 <td>
                     <button class="btn btn-purple" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="printSingleReceipt(${inv.id})">Receipt 🧾</button>
-                    <button class="btn btn-red" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="cancelInvoiceSystem(${inv.id})">Delete 🗑️</button>
                 </td>
             </tr>`;
         }).join('');
     }
 
-    function cancelInvoiceSystem(invId) {
-        requestPasswordModal("🔐 Delete Invoice Confirmation", () => {
-            const invIdx = savedInvoices.findIndex(i => i.id === invId);
-            if (invIdx === -1) return;
-
-            if (confirm(`❌ Delete invoice #${invId}?`)) {
-                savedInvoices.splice(invIdx, 1);
-                syncToCloud("deleteInvoice", { id: invId });
-                alert(`🗑️ Invoice #${invId} deleted!`);
-                fetchCloudInvoicesData();
-            }
-        });
-    }
-
-    function calculateNetProfit() {
-        let totalSell = 0, totalComm = 0, netProfit = 0;
-        let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0;
-
-        savedInvoices.forEach(inv => {
-            totalSell += inv.totalEGP || 0;
-            totalComm += inv.totalComm || 0;
-            netProfit += inv.netProfit || 0;
-
-            if (inv.items && Array.isArray(inv.items)) {
-                inv.items.forEach(i => {
-                    sumUSD += parseFloat(i.usd || 0);
-                    sumEUR += parseFloat(i.eur || 0);
-                    sumGBP += parseFloat(i.gbp || 0);
-                    sumEGP += parseFloat(i.egp || 0);
-                    sumVISA += parseFloat(i.visa || 0);
-                });
-            } else {
-                sumUSD += parseFloat(inv.usd || 0);
-                sumEUR += parseFloat(inv.eur || 0);
-                sumGBP += parseFloat(inv.gbp || 0);
-                sumEGP += parseFloat(inv.egp || 0);
-                sumVISA += parseFloat(inv.visa || 0);
-            }
-        });
-
-        document.getElementById('repTotalUSD').textContent = '$' + sumUSD.toFixed(2);
-        document.getElementById('repTotalEUR').textContent = '€' + sumEUR.toFixed(2);
-        document.getElementById('repTotalGBP').textContent = '£' + sumGBP.toFixed(2);
-        document.getElementById('repTotalEGP').textContent = sumEGP.toFixed(2) + ' EGP';
-        document.getElementById('repTotalVISA').textContent = sumVISA.toFixed(2) + ' EGP';
-
-        document.getElementById('repTotalSell').textContent = totalSell.toFixed(2) + ' EGP';
-        document.getElementById('repTotalComm').textContent = totalComm.toFixed(2) + ' EGP';
-        document.getElementById('repNetProfit').textContent = netProfit.toFixed(2) + ' EGP';
-
-        document.getElementById('profitBox').style.display = 'block';
-    }
-
-    /* اليومية والإيرادات والمصروفات */
     function saveExpenseEntry() {
         const date = document.getElementById('expDate').value;
         const income = parseFloat(document.getElementById('expIncome').value) || 0;
