@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,6 +51,9 @@
         .btn-purple { background: #8e44ad; }
         .btn-orange { background: #e67e22; }
 
+        .nav-controls { display: flex; gap: 6px; justify-content: center; margin-top: 10px; margin-bottom: 10px; }
+        .nav-controls .btn { width: auto; font-size: 0.8rem; padding: 6px 12px; margin-top: 0; }
+
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 6px; }
         table { width: 100%; min-width: 600px; border-collapse: collapse; }
         th, td { padding: 6px 4px; border: 1px solid #ddd; text-align: center; font-size: 0.78rem; word-break: break-word; vertical-align: middle; }
@@ -71,6 +74,8 @@
 
         .modal { display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
         .modal-content { background-color: white; padding: 20px; border-radius: 8px; text-align: center; width: 300px; }
+        .date-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+        .date-filter input { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -110,7 +115,7 @@
 
     <!-- 1. البيع المباشر -->
     <div id="salesTab" class="tab-content active">
-        <div class="section-title">🛒 Create Sales Invoice</div>
+        <div class="section-title">🛒 Create & Edit Sales Invoice</div>
 
         <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
             <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 Sync & Invoice Controls:</div>
@@ -121,6 +126,14 @@
         <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px; align-items: center;">
             <div>Invoice Date: <input type="datetime-local" id="invoiceDate" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc;"></div>
             <div>Invoice ID: <span id="invNum" style="color: #1e3c72; font-size: 1.2rem; font-weight: bold;">1001</span></div>
+        </div>
+
+        <!-- أزرار التنقل بين الفواتير -->
+        <div class="nav-controls">
+            <button class="btn btn-blue" onclick="navigateInvoice('first')">⏮️ First</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('prev')">◀️ Previous</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('next')">Next ▶️</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('last')">Last ⏭️</button>
         </div>
 
         <input type="text" id="searchInput" class="search-box" style="margin-top:12px;" placeholder="Search item by name..." oninput="searchProduct()">
@@ -262,10 +275,10 @@
         </div>
     </div>
 
-    <!-- 5. التقارير الفواتير والعملات الحقيقية -->
+    <!-- 5. التقارير والعملات المجمعة -->
     <div id="reportsTab" class="tab-content">
         <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-            <span>📊 Sales Reports & Backup</span>
+            <span>📊 Financial Reports & Archive</span>
             <button class="btn btn-purple" style="width:auto; margin:0; padding:6px 12px; font-size:0.8rem;" onclick="promptRatesPassword()">⚙️ Currency Rates Settings</button>
         </div>
 
@@ -273,7 +286,7 @@
             <div>From Date: <input type="date" id="fromDate"></div>
             <div>To Date: <input type="date" id="toDate"></div>
             <button class="btn btn-blue" style="width: auto; margin-top: 0;" onclick="generateReport()">Filter Reports 📈</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="calculateNetProfit()">📊 Profit & Currency Totals 💵</button>
+            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="calculateNetProfit()">Profit & Currency Totals 📊</button>
             <button class="btn btn-orange" style="width: auto; margin-top: 0;" onclick="exportReportPDF()">Export PDF 📄</button>
         </div>
 
@@ -324,6 +337,7 @@
     let products = [];
     let invoiceItems = [];
     let selectedProd = null;
+    let currentNavIndex = -1;
     let invoiceCounter = 1001;
     let activeInvoiceId = 1001;
 
@@ -405,7 +419,6 @@
         fetchCloudInvoicesData();
     }
 
-    // دالة سحب وتحميل البيانات الشاملة لعرض جميع الفواتير الـ 30 فوراً
     function fetchCloudInvoicesData() {
         const oldScript = document.getElementById('cloudSyncScript');
         if (oldScript) oldScript.remove();
@@ -420,7 +433,7 @@
                 prepareNewInvoice();
                 renderExpensesReport();
                 renderStockTable();
-                generateReport(); // توليد الفواتير بجدول التقارير أوتوماتيكياً بمجرد فتح التطبيق
+                generateReport();
             }
         };
 
@@ -436,6 +449,47 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: actionType, data: data })
         });
+    }
+
+    function navigateInvoice(direction) {
+        if (savedInvoices.length === 0) return alert('No invoices saved to navigate!');
+        
+        if (direction === 'first') currentNavIndex = 0;
+        else if (direction === 'last') currentNavIndex = savedInvoices.length - 1;
+        else if (direction === 'prev') {
+            if (currentNavIndex <= 0) currentNavIndex = 0;
+            else currentNavIndex--;
+        }
+        else if (direction === 'next') {
+            if (currentNavIndex >= savedInvoices.length - 1) currentNavIndex = savedInvoices.length - 1;
+            else currentNavIndex++;
+        }
+
+        loadInvoiceIntoForm(savedInvoices[currentNavIndex]);
+    }
+
+    function loadInvoiceIntoForm(inv) {
+        if (!inv) return;
+        activeInvoiceId = inv.id;
+        document.getElementById('invNum').textContent = inv.id;
+        
+        if (inv.date) {
+            document.getElementById('invoiceDate').value = inv.date.replace(' ', 'T').slice(0, 16);
+        }
+
+        if (Array.isArray(inv.items) && inv.items.length > 0) {
+            invoiceItems = JSON.parse(JSON.stringify(inv.items));
+        } else {
+            invoiceItems = [{
+                name: inv.itemsText || "Saved Item",
+                qty: 1,
+                commTotal: inv.totalComm || 0,
+                sellTotal: inv.totalEGP || 0,
+                netProfit: inv.netProfit || 0,
+                usd: inv.usd||0, eur: inv.eur||0, gbp: inv.gbp||0, egp: inv.egp||0, visa: inv.visa||0
+            }];
+        }
+        renderInvoice();
     }
 
     function searchProduct() {
@@ -567,7 +621,15 @@
             totalEGP: invoiceItems.reduce((a,b)=>a+b.sellTotal, 0),
             netProfit: invoiceItems.reduce((a,b)=>a+b.netProfit, 0)
         };
-        savedInvoices.push(savedInv);
+
+        const existingIndex = savedInvoices.findIndex(i => i.id === activeInvoiceId);
+        if (existingIndex > -1) {
+            savedInvoices[existingIndex] = savedInv;
+        } else {
+            savedInvoices.push(savedInv);
+            if (activeInvoiceId === invoiceCounter) invoiceCounter++;
+        }
+
         syncToCloud("saveInvoice", savedInv);
 
         invoiceItems.forEach(i => {
@@ -576,13 +638,13 @@
         });
 
         alert(`Invoice #${activeInvoiceId} saved & synced!`);
-        invoiceCounter++;
         prepareNewInvoice();
         generateReport();
     }
 
     function prepareNewInvoice() {
         activeInvoiceId = invoiceCounter;
+        currentNavIndex = -1;
         document.getElementById('invNum').textContent = activeInvoiceId;
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -676,7 +738,6 @@
         requestPasswordModal("🔐 Delete Invoice Confirmation", () => {
             const invIdx = savedInvoices.findIndex(i => i.id === invId);
             if (invIdx === -1) return;
-            const inv = savedInvoices[invIdx];
 
             if (confirm(`❌ Delete invoice #${invId}?`)) {
                 savedInvoices.splice(invIdx, 1);
