@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anjum Green Pharmacy 2026</title>
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
@@ -55,7 +56,6 @@
         .nav-controls { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
         .nav-controls .btn { width: auto; font-size: 0.8rem; padding: 6px 12px; margin-top: 0; }
 
-        /* Toolbar Row Styling for Reports */
         .toolbar-row { display: flex; gap: 6px; align-items: center; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
         .toolbar-row .btn { width: auto; flex-shrink: 0; margin-top: 0; font-size: 0.8rem; padding: 7px 12px; white-space: nowrap; }
 
@@ -339,7 +339,6 @@
                 <div>To: <input type="date" id="toDate"></div>
             </div>
             
-            <!-- Standard Toolbar Row -->
             <div class="toolbar-row">
                 <button class="btn btn-blue" onclick="generateReport()">Filter 📈</button>
                 <button class="btn btn-purple" onclick="handleNetProfitAction()">Net Profit 💵</button>
