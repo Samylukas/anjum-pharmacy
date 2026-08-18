@@ -55,6 +55,10 @@
         .nav-controls { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
         .nav-controls .btn { width: auto; font-size: 0.8rem; padding: 6px 12px; margin-top: 0; }
 
+        /* Toolbar Row Styling for Reports */
+        .toolbar-row { display: flex; gap: 6px; align-items: center; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+        .toolbar-row .btn { width: auto; flex-shrink: 0; margin-top: 0; font-size: 0.8rem; padding: 7px 12px; white-space: nowrap; }
+
         .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border-radius: 6px; }
         table { width: 100%; min-width: 600px; border-collapse: collapse; }
         th, td { padding: 6px 4px; border: 1px solid #ddd; text-align: center; font-size: 0.78rem; word-break: break-word; vertical-align: middle; }
@@ -89,7 +93,7 @@
     </div>
 </div>
 
-<!-- Password Modal for Secure Authorization -->
+<!-- Password Modal -->
 <div id="authOverlay" class="login-overlay" style="display:none;">
     <div class="login-card">
         <h3 id="authTitle" style="color:#1e3c72; margin-bottom:15px; font-size:1.1rem;">🔐 Enter Authorization Password</h3>
@@ -118,9 +122,8 @@
         <div class="section-title">🛒 Create / Edit Sales Invoice</div>
 
         <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
-            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 Sync & Currency Options:</div>
+            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 Sync Options:</div>
             <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">Sync Data 🔄</button>
-            <button class="btn btn-purple" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="promptSetRates()">Set FX Rates ⚙️</button>
             <button class="btn btn-orange" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="prepareNewInvoice()">New Invoice ➕</button>
         </div>
 
@@ -330,15 +333,22 @@
     <div id="reportsTab" class="tab-content">
         <div class="section-title">📊 Sales Reports & Backup</div>
         
-        <div class="date-filter card">
-            <div>From: <input type="date" id="fromDate"></div>
-            <div>To: <input type="date" id="toDate"></div>
-            <button class="btn btn-blue" style="width: auto; margin-top: 0;" onclick="generateReport()">Filter 📈</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="handleNetProfitAction()">Net Profit 💵</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0;" onclick="printReportTable()">Print Report 🖨️</button>
-            <button class="btn btn-orange" style="width: auto; margin-top: 0;" onclick="exportReportPDF()">Export PDF 📄</button>
-            <button class="btn btn-blue" style="width: auto; margin-top: 0; background:#27ae60;" onclick="handleBackupExportAction()">Backup JSON 💾</button>
-            <button class="btn btn-purple" style="width: auto; margin-top: 0; background:#8e44ad;" onclick="handleBackupImportAction()">Restore Backup 📥</button>
+        <div class="card">
+            <div class="date-filter" style="margin-bottom:8px;">
+                <div>From: <input type="date" id="fromDate"></div>
+                <div>To: <input type="date" id="toDate"></div>
+            </div>
+            
+            <!-- Standard Toolbar Row -->
+            <div class="toolbar-row">
+                <button class="btn btn-blue" onclick="generateReport()">Filter 📈</button>
+                <button class="btn btn-purple" onclick="handleNetProfitAction()">Net Profit 💵</button>
+                <button class="btn btn-purple" onclick="promptSetRates()">Set FX Rates ⚙️</button>
+                <button class="btn btn-purple" onclick="printReportTable()">Print Report 🖨️</button>
+                <button class="btn btn-orange" onclick="exportReportPDF()">Export PDF 📄</button>
+                <button class="btn btn-blue" style="background:#27ae60;" onclick="handleBackupExportAction()">Backup JSON 💾</button>
+                <button class="btn btn-purple" style="background:#8e44ad;" onclick="handleBackupImportAction()">Restore Backup 📥</button>
+            </div>
         </div>
 
         <div id="profitBox" class="totals-box" style="display:none; background:#1e3c72; margin-bottom:15px;">
@@ -421,7 +431,6 @@
         }
     }
 
-    // Modal Password Prompt
     function requestPassword(titleText, expectedPassword, onSuccess) {
         document.getElementById('authTitle').textContent = titleText;
         const inputEl = document.getElementById('authPassInput');
