@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +19,6 @@
         
         .sync-status { text-align: center; font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; padding: 6px; border-radius: 6px; }
         .status-online { background: #d4edda; color: #155724; }
-        .status-offline { background: #f8d7da; color: #721c24; }
 
         .nav-tabs { display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tab-btn { background: #e9ecef; color: #2c3e50; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; flex-shrink: 0; }
@@ -62,15 +61,8 @@
         .login-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #1e3c72; display: flex; justify-content: center; align-items: center; z-index: 9999999; }
         .login-card { background: white; padding: 25px; border-radius: 12px; text-align: center; width: 90%; max-width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 
-        .live-invoice-summary { background: #1e3c72; color: white; border-radius: 8px; padding: 10px; margin-top: 12px; }
-        .live-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 6px; text-align: center; font-size: 0.75rem; }
-        .live-summary-item { background: rgba(255,255,255,0.12); padding: 5px; border-radius: 5px; }
-        .live-summary-item span { display: block; color: #f1c40f; font-weight: bold; font-size: 0.85rem; margin-top: 2px; }
-
         .modal { display: none; position: fixed; z-index: 999999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
         .modal-content { background-color: white; padding: 20px; border-radius: 8px; text-align: center; width: 300px; }
-        .date-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
-        .date-filter input { padding: 6px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -78,221 +70,132 @@
 <div id="loginOverlay" class="login-overlay">
     <div class="login-card">
         <h2 style="color:#1e3c72; margin-bottom:15px; font-size:1.2rem;">🔐 Anjum Green Pharmacy</h2>
-        <input type="password" id="entryPassInput" class="search-box" style="text-align:center; font-size:1.2rem;" placeholder="أدخل كلمة السر" onkeypress="if(event.key === 'Enter') validateEntryPassword()">
-        <button class="btn btn-blue" onclick="validateEntryPassword()">دخول النظام 🚀</button>
+        <input type="password" id="entryPassInput" class="search-box" style="text-align:center; font-size:1.2rem;" placeholder="Enter Password" onkeypress="if(event.key === 'Enter') validateEntryPassword()">
+        <button class="btn btn-blue" onclick="validateEntryPassword()">Login 🚀</button>
     </div>
 </div>
 
 <div id="passwordModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="margin-bottom:10px; color:#1e3c72;">🔐 أدخل كلمة السر</h3>
+        <h3 id="modalTitle" style="margin-bottom:10px; color:#1e3c72;">🔐 Enter Password</h3>
         <input type="password" id="modalPassInput" class="search-box" style="text-align:center;" placeholder="••••••" onkeypress="if(event.key === 'Enter') submitPasswordModal()">
         <div style="display:flex; gap:5px; margin-top:10px;">
-            <button class="btn btn-blue" style="margin:0;" onclick="submitPasswordModal()">تأكيد</button>
-            <button class="btn btn-red" style="margin:0;" onclick="closePasswordModal()">إلغاء</button>
+            <button class="btn btn-blue" style="margin:0;" onclick="submitPasswordModal()">Confirm</button>
+            <button class="btn btn-red" style="margin:0;" onclick="closePasswordModal()">Cancel</button>
         </div>
     </div>
 </div>
 
 <div class="app-container" id="mainContainer" style="display:none;">
-    <h1>🌿 Anjum Green Pharmacy - النظام الإداري المالي والمخزني 2026</h1>
-    <div id="syncIndicator" class="sync-status status-online">🟢 On line</div>
+    <h1>🌿 Anjum Green Pharmacy - Management System 2026</h1>
+    <div id="syncIndicator" class="sync-status status-online">🟢 Online Connected</div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" onclick="showTab('salesTab', event)">🛒 البيع المباشر والفاتورة</button>
-        <button class="tab-btn" onclick="showTab('expensesTab', event)">🔒 💵 اليومية والمصروفات (EGP)</button>
-        <button class="tab-btn" onclick="showTab('stockTab', event)">🔒 📦 حالة وتفاصيل المخزن</button>
-        <button class="tab-btn" onclick="showTab('addStockTab', event)">🔒 ➕ شحن وإضافة مخزون</button>
-        <button class="tab-btn" onclick="showTab('reportsTab', event)">🔒 📊 التقارير والأرشيف المالي</button>
+        <button class="tab-btn active" onclick="showTab('salesTab', event)">🛒 Direct Sales</button>
+        <button class="tab-btn" onclick="showTab('stockTab', event)">🔒 📦 Stock Details</button>
+        <button class="tab-btn" onclick="showTab('reportsTab', event)">🔒 📊 Financial Reports</button>
     </div>
 
-    <!-- 1. البيع المباشر -->
+    <!-- 1. Direct Sales -->
     <div id="salesTab" class="tab-content active">
-        <div class="section-title">🛒 إنشاء وتعديل فاتورة بيع</div>
+        <div class="section-title">🛒 Create & Edit Sales Invoice</div>
 
-        <div class="date-filter card" style="background:#fff3cd; border-color:#ffeeba;">
-            <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 خيارات المزامنة والأوامر:</div>
-            <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">سحب وتحديث البيانات 🔄</button>
-            <button class="btn btn-orange" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="prepareNewInvoice()">فاتورة جديدة ➕</button>
+        <div class="card" style="background:#fff3cd; border-color:#ffeeba; display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">Fetch Data 🔄</button>
+            <button class="btn btn-orange" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="prepareNewInvoice()">New Invoice ➕</button>
         </div>
 
         <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px; align-items: center;">
-            <div>تاريخ الفاتورة: <input type="datetime-local" id="invoiceDate" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc;"></div>
-            <div>رقم الفاتورة: <span id="invNum" style="color: #1e3c72; font-size: 1.2rem; font-weight: bold;">1001</span></div>
+            <div>Invoice Date: <input type="datetime-local" id="invoiceDate" style="padding: 4px; border-radius: 4px; border: 1px solid #ccc;"></div>
+            <div>Invoice ID: <span id="invNum" style="color: #1e3c72; font-size: 1.2rem; font-weight: bold;">1001</span></div>
         </div>
 
         <div class="nav-controls">
-            <button class="btn btn-blue" onclick="navigateInvoice('first')">⏮️ أول سجل</button>
-            <button class="btn btn-blue" onclick="navigateInvoice('prev')">◀️ السابق</button>
-            <button class="btn btn-blue" onclick="navigateInvoice('next')">اللاحق ▶️</button>
-            <button class="btn btn-blue" onclick="navigateInvoice('last')">آخر سجل ⏭️</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('first')">⏮️ First</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('prev')">◀️ Previous</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('next')">Next ▶️</button>
+            <button class="btn btn-blue" onclick="navigateInvoice('last')">Last ⏭️</button>
         </div>
 
-        <input type="text" id="searchInput" class="search-box" style="margin-top:12px;" placeholder="ابحث باسم المنتج لإضافته..." oninput="searchProduct()">
+        <input type="text" id="searchInput" class="search-box" style="margin-top:12px;" placeholder="Search item by name..." oninput="searchProduct()">
         <div id="searchResults" class="results-list"></div>
 
         <div id="productCard" class="card" style="display:none;">
             <h3 id="prodName" style="color: #1e3c72; margin-bottom: 10px; font-size: 1.1rem;"></h3>
             <div class="info-row">
-                <div>المتاح بالمخزن: <span id="stockQty" style="color:#27ae60;">0</span> قطعة</div>
-                <div>السعر التجاري للوحدة: <span id="commPrice" style="color:#2c3e50;">0</span> ج.م</div>
-                <div>الحد الأدنى الاسترشادي (×3): <span id="guidePrice" style="color:#e67e22;">0</span> ج.م</div>
+                <div>Stock Qty: <span id="stockQty" style="color:#27ae60;">0</span> pcs</div>
+                <div>Comm Price: <span id="commPrice" style="color:#2c3e50;">0</span> EGP</div>
             </div>
 
             <div class="info-row" style="align-items: center;">
-                <label>الكمية المباعة:</label>
+                <label>Sold Qty:</label>
                 <input type="number" id="sellQty" value="1" min="1" style="width: 80px; padding: 6px; text-align: center; border-radius: 4px; border: 1px solid #ccc;">
             </div>
 
-            <p style="font-size: 0.85rem; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 8px;">أدخل السعر اليدوي المباشر حسب العملة:</p>
+            <p style="font-size: 0.85rem; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 8px;">Enter Payment Currency:</p>
             <div class="payment-grid">
-                <div class="pay-box"><label id="lblUSD">دولار ($ × 50)</label><input type="number" id="pUSD" value="0"></div>
-                <div class="pay-box"><label id="lblEUR">يورو (€ × 60)</label><input type="number" id="pEUR" value="0"></div>
-                <div class="pay-box"><label id="lblGBP">إسترليني (£ × 70)</label><input type="number" id="pGBP" value="0"></div>
-                <div class="pay-box"><label id="lblEGP">مصري (EGP)</label><input type="number" id="pEGP" value="0"></div>
-                <div class="pay-box" style="grid-column: span 2;"><label id="lblVISA">فيزا (Visa EGP)</label><input type="number" id="pVISA" value="0"></div>
+                <div class="pay-box"><label>USD ($)</label><input type="number" id="pUSD" value="0"></div>
+                <div class="pay-box"><label>EUR (€)</label><input type="number" id="pEUR" value="0"></div>
+                <div class="pay-box"><label>GBP (£)</label><input type="number" id="pGBP" value="0"></div>
+                <div class="pay-box"><label>EGP (EGP)</label><input type="number" id="pEGP" value="0"></div>
+                <div class="pay-box" style="grid-column: span 2;"><label>Visa (Visa EGP)</label><input type="number" id="pVISA" value="0"></div>
             </div>
 
-            <button class="btn" onclick="addToInvoice()">إضافة للفاتورة 🛒</button>
+            <button class="btn" onclick="addToInvoice()">Add To Invoice 🛒</button>
         </div>
 
-        <div class="section-title" style="margin-top: 20px;">📄 جدول الأصناف بالفاتورة الحالية</div>
+        <div class="section-title" style="margin-top: 20px;">📄 Invoice Items Table</div>
         <div class="table-responsive"><table>
             <thead>
                 <tr>
-                    <th style="width:35px;">م</th>
-                    <th>اسم الصنف</th>
-                    <th>الكمية</th>
-                    <th>إجمالي التجاري</th>
-                    <th>طرق الدفع والعملات</th>
-                    <th>إجمالي سعر البيع</th>
-                    <th style="width:60px;">إجراء</th>
+                    <th style="width:35px;">#</th>
+                    <th>Item Name</th>
+                    <th>Qty</th>
+                    <th>Payment Breakdown</th>
+                    <th style="width:60px;">Action</th>
                 </tr>
             </thead>
             <tbody id="invoiceTableBody">
-                <tr><td colspan="7" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>
+                <tr><td colspan="5" style="color: #7f8c8d;">No items added yet</td></tr>
             </tbody>
         </table></div>
 
-        <div class="live-invoice-summary">
-            <h4 style="text-align:center; font-size:0.85rem; margin-bottom:6px; color:#f1c40f;">💵 إجمالي الفاتورة الحالية المجمع بالعملات والجنيه:</h4>
-            <div class="live-summary-grid">
-                <div class="live-summary-item">دولار ($)<span id="liveUSD">$0</span></div>
-                <div class="live-summary-item">يورو (€)<span id="liveEUR">€0</span></div>
-                <div class="live-summary-item">إسترليني (£)<span id="liveGBP">£0</span></div>
-                <div class="live-summary-item">مصري (EGP)<span id="liveEGP">0 ج.م</span></div>
-                <div class="live-summary-item">فيزا<span id="liveVISA">0 ج.م</span></div>
-                <div class="live-summary-item" style="background:rgba(46,204,113,0.3); border:1px solid #27ae60;">الإجمالي بالجنيه<span id="liveTotalEGP" style="color:#fff; font-size:0.95rem;">0.00 ج.م</span></div>
-            </div>
-        </div>
-
-        <button class="btn btn-blue" style="margin-top: 15px; font-size: 1.1rem; padding: 12px;" onclick="saveInvoice()">حفظ وتقفيل الفاتورة والمزامنة 💾</button>
+        <button class="btn btn-blue" style="margin-top: 15px; font-size: 1.1rem; padding: 12px;" onclick="saveInvoice()">Save & Sync Invoice 💾</button>
     </div>
 
-    <!-- 2. اليومية والمصروفات -->
-    <div id="expensesTab" class="tab-content">
-        <div class="section-title">💵 تسجيل ومتابعة اليومية (الإيرادات والمصروفات بالجنيه)</div>
-        <div class="card" style="background:#f4f9f9;">
-            <div class="payment-grid">
-                <div class="pay-box"><label>التاريخ:</label><input type="date" id="expDate"></div>
-                <div class="pay-box"><label>الإيراد (ج.م):</label><input type="number" id="expIncome" value="0"></div>
-                <div class="pay-box"><label>المصروف (ج.م):</label><input type="number" id="expExpense" value="0"></div>
-                <div class="pay-box"><label>ملاحظات والبيان:</label><input type="text" id="expNotes" placeholder="أدخل البيان..."></div>
-            </div>
-            <button class="btn btn-purple" style="margin-top: 10px;" onclick="saveExpenseEntry()">حفظ اليومية بالسحابة 📥</button>
-        </div>
-
-        <div class="date-filter card" style="margin-top: 15px;">
-            <div>من تاريخ: <input type="date" id="expFromDate"></div>
-            <div>إلى تاريخ: <input type="date" id="expToDate"></div>
-            <button class="btn btn-blue" style="width: auto; margin-top: 0;" onclick="renderExpensesReport()">عرض وتصفية 🔍</button>
-        </div>
-
-        <div class="live-invoice-summary" style="background:#2c3e50;">
-            <div class="live-summary-grid">
-                <div class="live-summary-item">إجمالي الإيرادات<span id="expTotalIncome" style="color:#2ecc71;">0.00 ج.م</span></div>
-                <div class="live-summary-item">إجمالي المصروفات<span id="expTotalExpense" style="color:#e74c3c;">0.00 ج.م</span></div>
-                <div class="live-summary-item">صافي الفارق<span id="expNetBalance" style="color:#f1c40f;">0.00 ج.م</span></div>
-            </div>
-        </div>
-
-        <div class="table-responsive" style="margin-top:10px;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>م</th>
-                        <th>التاريخ</th>
-                        <th>الإيراد (EGP)</th>
-                        <th>المصروف (EGP)</th>
-                        <th>البيان والملاحظات</th>
-                    </tr>
-                </thead>
-                <tbody id="expensesTableBody">
-                    <tr><td colspan="5" style="color:#7f8c8d;">لا توجد سجلات محفوظة</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 3. المخزن -->
+    <!-- 2. Stock Status -->
     <div id="stockTab" class="tab-content">
-        <div class="section-title">📦 حالة وتفاصيل المخزون الحالي</div>
-        <input type="text" id="stockFilterInput" class="search-box" placeholder="فلترة المخزن باسم المنتج..." oninput="renderStockTable(this.value)">
-        <div id="stockPrintArea" style="max-height: 400px; overflow-y: auto;">
-            <div class="table-responsive"><table>
-                <thead>
-                    <tr>
-                        <th style="width:35px;">م</th>
-                        <th>اسم المنتج / الصنف</th>
-                        <th>المتوفر بالمخزن</th>
-                        <th>السعر التجاري</th>
-                        <th>الحد الأدنى (×3)</th>
-                    </tr>
-                </thead>
-                <tbody id="stockTableBody"></tbody>
-            </table></div>
-        </div>
+        <div class="section-title">📦 Inventory & Stock Details</div>
+        <input type="text" id="stockFilterInput" class="search-box" placeholder="Filter stock by name..." oninput="renderStockTable(this.value)">
+        <div class="table-responsive"><table>
+            <thead>
+                <tr>
+                    <th style="width:35px;">#</th>
+                    <th>Item Name</th>
+                    <th>Available Stock</th>
+                    <th>Unit Price</th>
+                </tr>
+            </thead>
+            <tbody id="stockTableBody"></tbody>
+        </table></div>
     </div>
 
-    <!-- 4. إضافة مخزون -->
-    <div id="addStockTab" class="tab-content">
-        <div class="section-title">➕ إضافة منتج جديد تماماً بالسحابة</div>
-        <div class="card" style="background:#eef7fe;">
-            <div class="payment-grid">
-                <div class="pay-box"><label>اسم المنتج الجديد:</label><input type="text" id="newProdName" placeholder="أدخل اسم المنتج..."></div>
-                <div class="pay-box"><label>السعر التجاري (EGP):</label><input type="number" id="newProdPrice" placeholder="0.00"></div>
-                <div class="pay-box" style="grid-column: span 2;"><label>الكمية المتاحة بالمخزن:</label><input type="number" id="newProdQty" value="10"></div>
-            </div>
-            <button class="btn btn-purple" style="margin-top: 12px;" onclick="addNewProductToSystem()">حفظ وإرسال الصنف 📦</button>
-        </div>
-    </div>
-
-    <!-- 5. التقارير -->
+    <!-- 3. Financial Reports -->
     <div id="reportsTab" class="tab-content">
-        <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-            <span>📊 تقارير المبيعات والأرشيف المالي</span>
-            <button class="btn btn-purple" style="width:auto; margin:0; padding:6px 12px; font-size:0.8rem;" onclick="promptRatesPassword()">⚙️ ضبط أسعار العملات</button>
-        </div>
-
-        <div class="date-filter card" style="margin-top:10px;">
-            <div>من تاريخ: <input type="date" id="fromDate"></div>
-            <div>إلى تاريخ: <input type="date" id="toDate"></div>
-            <button class="btn btn-blue" style="width: auto; margin-top: 0;" onclick="generateReport()">عرض الفلترة 📈</button>
-            <button class="btn btn-orange" style="width: auto; margin-top: 0;" onclick="exportReportPDF()">تصدير PDF 📄</button>
-        </div>
+        <div class="section-title">📊 Financial Reports & Saved Invoices</div>
 
         <div class="table-responsive" id="reportsPrintArea"><table>
             <thead>
                 <tr>
-                    <th style="width:35px;">م</th>
-                    <th>رقم الفاتورة</th>
-                    <th>تاريخ الفاتورة الفعلي</th>
-                    <th>تفاصيل الأصناف المباعة والأسعار</th>
-                    <th style="width:120px;">الإجراءات</th>
+                    <th style="width:35px;">#</th>
+                    <th>Invoice ID</th>
+                    <th>Date</th>
+                    <th>Sold Items & Details</th>
+                    <th style="width:100px;">Action</th>
                 </tr>
             </thead>
             <tbody id="savedInvoicesBody">
-                <tr><td colspan="5" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>
+                <tr><td colspan="5" style="color:#7f8c8d;">Loading invoices...</td></tr>
             </tbody>
         </table></div>
     </div>
@@ -303,9 +206,7 @@
     const ENTRY_PASSWORD = "123";
     const ADMIN_PASSWORD = "852";
 
-    let RATES = { USD: 50, EUR: 60, GBP: 70, EGP: 1, VISA: 1 };
     let pendingPasswordCallback = null;
-    let expensesList = [];
     let savedInvoices = [];
     let products = [];
     let invoiceItems = [];
@@ -315,7 +216,6 @@
     let activeInvoiceId = 1001;
 
     window.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
         const passEl = document.getElementById('entryPassInput');
         if (passEl) passEl.focus();
     });
@@ -327,7 +227,7 @@
             document.getElementById('mainContainer').style.display = 'block';
             initSystem();
         } else {
-            alert('❌ كلمة السر غير صحيحة!');
+            alert('❌ Incorrect Password!');
             if (inputEl) inputEl.focus();
         }
     }
@@ -353,23 +253,14 @@
             closePasswordModal();
             if (cb) cb();
         } else {
-            alert('❌ كلمة السر غير صحيحة!');
+            alert('❌ Incorrect Password!');
             document.getElementById('modalPassInput').focus();
         }
     }
 
-    function promptRatesPassword() {
-        requestPasswordModal("⚙️ ضبط أسعار العملات", () => {
-            RATES.USD = parseFloat(prompt("💵 سعر صرف الدولار ($):", RATES.USD)) || RATES.USD;
-            RATES.EUR = parseFloat(prompt("💶 سعر صرف اليورو (€):", RATES.EUR)) || RATES.EUR;
-            RATES.GBP = parseFloat(prompt("💷 سعر صرف الإسترليني (£):", RATES.GBP)) || RATES.GBP;
-            alert('✅ تم تحديث أسعار الصرف بنجاح!');
-        });
-    }
-
     function showTab(tabId, evt) {
         if (tabId !== 'salesTab') {
-            requestPasswordModal("🔐 أدخل كلمة السر للتصفح", () => {
+            requestPasswordModal("🔐 Enter Password to Access", () => {
                 activateTabProcess(tabId, evt);
             });
         } else {
@@ -385,7 +276,6 @@
 
         if(tabId === 'stockTab') renderStockTable();
         if(tabId === 'reportsTab') generateReport();
-        if(tabId === 'expensesTab') renderExpensesReport();
     }
 
     function initSystem() {
@@ -400,11 +290,9 @@
             if (resData && resData.status === "success") {
                 if (resData.products) products = resData.products;
                 if (resData.invoices) savedInvoices = resData.invoices;
-                if (resData.expenses) expensesList = resData.expenses;
                 if (resData.nextInvoiceId) invoiceCounter = resData.nextInvoiceId;
 
                 prepareNewInvoice();
-                renderExpensesReport();
                 renderStockTable();
                 generateReport();
             }
@@ -424,45 +312,39 @@
         });
     }
 
-    function navigateInvoice(direction) {
-        if (savedInvoices.length === 0) return alert('لا توجد فواتير للتنقل بينها!');
-        
-        if (direction === 'first') currentNavIndex = 0;
-        else if (direction === 'last') currentNavIndex = savedInvoices.length - 1;
-        else if (direction === 'prev') {
-            if (currentNavIndex <= 0) currentNavIndex = 0;
-            else currentNavIndex--;
-        }
-        else if (direction === 'next') {
-            if (currentNavIndex >= savedInvoices.length - 1) currentNavIndex = savedInvoices.length - 1;
-            else currentNavIndex++;
+    function generateReport() {
+        const tbody = document.getElementById('savedInvoicesBody');
+        if (!savedInvoices || savedInvoices.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="color:#7f8c8d;">No saved invoices found</td></tr>';
+            return;
         }
 
-        loadInvoiceIntoForm(savedInvoices[currentNavIndex]);
+        tbody.innerHTML = savedInvoices.map((inv, index) => {
+            return `<tr>
+                <td>${index + 1}</td>
+                <td style="font-weight:bold;">#${inv.id}</td>
+                <td>${inv.date || '-'}</td>
+                <td style="text-align:left; font-size:0.8rem; line-height:1.4;">${inv.itemsText || '-'}</td>
+                <td>
+                    <button class="btn btn-purple" style="padding:4px 8px; font-size:0.75rem; margin:0;" onclick="printSingleReceipt(${inv.id})">Print 🧾</button>
+                </td>
+            </tr>`;
+        }).join('');
     }
 
-    function loadInvoiceIntoForm(inv) {
+    function printSingleReceipt(invId) {
+        const inv = savedInvoices.find(i => i.id === invId);
         if (!inv) return;
-        activeInvoiceId = inv.id;
-        document.getElementById('invNum').textContent = inv.id;
-        
-        if (inv.date) {
-            document.getElementById('invoiceDate').value = inv.date.replace(' ', 'T').slice(0, 16);
-        }
 
-        if (Array.isArray(inv.items) && inv.items.length > 0) {
-            invoiceItems = JSON.parse(JSON.stringify(inv.items));
-        } else {
-            invoiceItems = [{
-                name: inv.itemsText || "صنف محفوظ",
-                qty: 1,
-                commTotal: 0,
-                sellTotal: 0,
-                netProfit: 0,
-                usd: 0, eur: 0, gbp: 0, egp: 0, visa: 0
-            }];
-        }
-        renderInvoice();
+        const win = window.open('', '', 'height=600,width=400');
+        win.document.write('<html><head><title>Receipt #' + inv.id + '</title>');
+        win.document.write('<style>body{font-family:sans-serif;text-align:center;padding:10px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:4px;font-size:11px;}</style>');
+        win.document.write('</head><body><h3>Anjum Green Pharmacy 🌿</h3><p>Invoice ID: <b>#' + inv.id + '</b></p><p>Date: ' + inv.date + '</p><table><thead><tr><th>Details</th></tr></thead><tbody>');
+        win.document.write(`<tr><td style="text-align:left;">${inv.itemsText}</td></tr>`);
+        win.document.write(`</tbody></table></body></html>`);
+        win.document.close();
+        win.focus();
+        setTimeout(() => win.print(), 300);
     }
 
     function searchProduct() {
@@ -476,7 +358,7 @@
                 const idx = products.indexOf(i);
                 return `<div class="result-item" onclick="pickProductIndex(${idx})">
                     <span style="color:#1e3c72; font-weight:bold;">${i.n}</span>
-                    <span style="color:#27ae60; font-size:0.8rem;">(المتاح: ${i.q})</span>
+                    <span style="color:#27ae60; font-size:0.8rem;">(Stock: ${i.q})</span>
                 </div>`;
             }).join('');
             list.style.display = 'block';
@@ -488,17 +370,13 @@
     function pickProductIndex(index) {
         const p = products[index];
         if (!p) return;
-        selectedProd = { name: p.n, comm: p.p, guide: p.p * 3, stock: p.q };
+        selectedProd = { name: p.n, comm: p.p, stock: p.q };
 
         document.getElementById('searchResults').style.display = 'none';
         document.getElementById('searchInput').value = p.n;
         document.getElementById('prodName').textContent = p.n;
         document.getElementById('stockQty').textContent = p.q;
         document.getElementById('commPrice').textContent = (p.p || 0).toFixed(2);
-        document.getElementById('guidePrice').textContent = ((p.p || 0) * 3).toFixed(2);
-        document.getElementById('sellQty').value = 1;
-
-        ['pUSD', 'pEUR', 'pGBP', 'pEGP', 'pVISA'].forEach(id => document.getElementById(id).value = 0);
         document.getElementById('productCard').style.display = 'block';
     }
 
@@ -506,26 +384,25 @@
         if (!selectedProd) return;
         const qty = parseInt(document.getElementById('sellQty').value) || 1;
 
-        const u = parseFloat(document.getElementById('pUSD').value) || 0;
-        const eu = parseFloat(document.getElementById('pEUR').value) || 0;
-        const g = parseFloat(document.getElementById('pGBP').value) || 0;
-        const eg = parseFloat(document.getElementById('pEGP').value) || 0;
-        const v = parseFloat(document.getElementById('pVISA').value) || 0;
+        let u = parseFloat(document.getElementById('pUSD').value) || 0;
+        let eu = parseFloat(document.getElementById('pEUR').value) || 0;
+        let g = parseFloat(document.getElementById('pGBP').value) || 0;
+        let eg = parseFloat(document.getElementById('pEGP').value) || 0;
+        let v = parseFloat(document.getElementById('pVISA').value) || 0;
 
-        const itemTotalEGP = (u * RATES.USD) + (eu * RATES.EUR) + (g * RATES.GBP) + (eg * RATES.EGP) + (v * RATES.VISA);
+        let payInfo = [];
+        if (u > 0) payInfo.push(`${u} $`);
+        if (eu > 0) payInfo.push(`${eu} €`);
+        if (g > 0) payInfo.push(`${g} £`);
+        if (eg > 0) payInfo.push(`${eg} EGP`);
+        if (v > 0) payInfo.push(`${v} Visa`);
 
-        const pObj = products.find(item => item.n === selectedProd.name);
-        if (pObj) pObj.q -= qty;
-
-        const commTotal = selectedProd.comm * qty;
+        let payStr = payInfo.length > 0 ? payInfo.join(" - ") : "Direct";
 
         invoiceItems.push({
             name: selectedProd.name,
             qty: qty,
-            commTotal: commTotal,
-            sellTotal: itemTotalEGP,
-            netProfit: itemTotalEGP - commTotal,
-            usd: u, eur: eu, gbp: g, egp: eg, visa: v
+            payStr: payStr
         });
 
         renderInvoice();
@@ -533,90 +410,41 @@
         document.getElementById('searchInput').value = '';
     }
 
-    function getItemPaidText(item) {
-        if (!item) return '';
-        let paidParts = [];
-        if (item.usd > 0) paidParts.push(`${item.usd} $`);
-        if (item.eur > 0) paidParts.push(`${item.eur} €`);
-        if (item.gbp > 0) paidParts.push(`${item.gbp} £`);
-        if (item.egp > 0) paidParts.push(`${item.egp} ج.م`);
-        if (item.visa > 0) paidParts.push(`${item.visa} Visa`);
-
-        let paidStr = paidParts.length > 0 ? paidParts.join(" - ") : `${(item.sellTotal||0).toFixed(1)} ج.م`;
-        return `${item.name} | العدد: ${item.qty} | بيع: ${paidStr}`;
-    }
-
     function renderInvoice() {
         const tbody = document.getElementById('invoiceTableBody');
-        let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0, totalSellEGP = 0;
-
         if (invoiceItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="color: #7f8c8d;">No items added yet</td></tr>';
         } else {
             tbody.innerHTML = invoiceItems.map((item, index) => {
-                sumUSD += parseFloat(item.usd || 0);
-                sumEUR += parseFloat(item.eur || 0);
-                sumGBP += parseFloat(item.gbp || 0);
-                sumEGP += parseFloat(item.egp || 0);
-                sumVISA += parseFloat(item.visa || 0);
-                totalSellEGP += parseFloat(item.sellTotal || 0);
-
                 return `<tr>
                     <td style="font-weight:bold;">${index + 1}</td>
-                    <td style="font-weight:bold; text-align:right;">${item.name}</td>
+                    <td style="font-weight:bold; text-align:left;">${item.name}</td>
                     <td>${item.qty}</td>
-                    <td>${(item.commTotal||0).toFixed(2)} ج.م</td>
-                    <td>${getItemPaidText(item)}</td>
-                    <td style="color:#27ae60; font-weight:bold;">${(item.sellTotal||0).toFixed(2)} ج.م</td>
-                    <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="invoiceItems.splice(${index},1);renderInvoice();">حذف</button></td>
+                    <td>${item.payStr}</td>
+                    <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="invoiceItems.splice(${index},1);renderInvoice();">Remove</button></td>
                 </tr>`;
             }).join('');
         }
-
-        document.getElementById('liveUSD').textContent = '$' + sumUSD.toFixed(2);
-        document.getElementById('liveEUR').textContent = '€' + sumEUR.toFixed(2);
-        document.getElementById('liveGBP').textContent = '£' + sumGBP.toFixed(2);
-        document.getElementById('liveEGP').textContent = sumEGP.toFixed(2) + ' ج.م';
-        document.getElementById('liveVISA').textContent = sumVISA.toFixed(2) + ' ج.م';
-        document.getElementById('liveTotalEGP').textContent = totalSellEGP.toFixed(2) + ' ج.م';
     }
 
     function saveInvoice() {
-        if (invoiceItems.length === 0) return alert('الرجاء إضافة أصناف للفاتورة أولاً!');
-        let itemsSummaryText = invoiceItems.map(i => getItemPaidText(i)).join(" | ");
+        if (invoiceItems.length === 0) return alert('Please add items first!');
+        let itemsSummaryText = invoiceItems.map(i => `${i.name} | Qty: ${i.qty} | Paid: ${i.payStr}`).join(" | ");
         const savedInv = {
             id: activeInvoiceId,
             date: document.getElementById('invoiceDate').value.replace('T', ' '),
-            items: invoiceItems,
-            itemsText: itemsSummaryText,
-            totalComm: invoiceItems.reduce((a,b)=>a+b.commTotal, 0),
-            totalEGP: invoiceItems.reduce((a,b)=>a+b.sellTotal, 0),
-            netProfit: invoiceItems.reduce((a,b)=>a+b.netProfit, 0)
+            itemsText: itemsSummaryText
         };
-
-        const existingIndex = savedInvoices.findIndex(i => i.id === activeInvoiceId);
-        if (existingIndex > -1) {
-            savedInvoices[existingIndex] = savedInv;
-        } else {
-            savedInvoices.push(savedInv);
-            if (activeInvoiceId === invoiceCounter) invoiceCounter++;
-        }
-
+        savedInvoices.push(savedInv);
         syncToCloud("saveInvoice", savedInv);
 
-        invoiceItems.forEach(i => {
-            const pObj = products.find(p => p.n === i.name);
-            if (pObj) syncToCloud("updateSingleProduct", pObj);
-        });
-
-        alert(`تم حفظ/تعديل الفاتورة رقم #${activeInvoiceId} وتحديث البيانات!`);
+        alert(`Invoice #${activeInvoiceId} saved!`);
         prepareNewInvoice();
         generateReport();
     }
 
     function prepareNewInvoice() {
         activeInvoiceId = invoiceCounter;
-        currentNavIndex = -1;
         document.getElementById('invNum').textContent = activeInvoiceId;
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -625,167 +453,37 @@
         renderInvoice();
     }
 
-    function printSingleReceipt(invId) {
-        const inv = savedInvoices.find(i => i.id === invId);
-        if (!inv) return;
-
-        const win = window.open('', '', 'height=600,width=400');
-        win.document.write('<html><head><title>إيصال #' + inv.id + '</title>');
-        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:10px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:4px;font-size:11px;} th{background:#1e3c72;color:#fff;}</style>');
-        win.document.write('</head><body><h3 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h3><p>فاتورة بيع رقم: <b>#' + inv.id + '</b></p><p>التاريخ: ' + (inv.date||'').replace('T', ' ').replace('.000Z', '') + '</p><table><thead><tr><th>تفاصيل الصنف</th></tr></thead><tbody>');
-        
-        if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
-            inv.items.forEach(i => {
-                win.document.write(`<tr><td style="text-align:right;">• ${getItemPaidText(i)}</td></tr>`);
-            });
-        } else {
-            let itemsArray = (inv.itemsText||"").split(' | ');
-            itemsArray.forEach(itm => {
-                win.document.write(`<tr><td style="text-align:right;">• ${itm}</td></tr>`);
-            });
-        }
-
-        win.document.write(`</tbody></table><h4 style="margin-top:10px; text-align:left;">الإجمالي: ${(inv.totalEGP||0).toFixed(2)} ج.م</h4><p style="font-size:10px; margin-top:15px;">شكراً لزيارتكم Anjum Green Pharmacy!</p></body></html>`);
-        win.document.close();
-        win.focus();
-        setTimeout(() => win.print(), 300);
-    }
-
-    function generateReport() {
-        const fromD = document.getElementById('fromDate').value;
-        const toD = document.getElementById('toDate').value;
-
-        const filtered = savedInvoices.filter(inv => {
-            if (!inv.date) return true;
-            const invD = inv.date.slice(0, 10);
-            if (fromD && invD < fromD) return false;
-            if (toD && invD > toD) return false;
-            return true;
-        });
-
-        const tbody = document.getElementById('savedInvoicesBody');
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = filtered.map((inv, index) => {
-            let itemsList = "";
-            if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
-                itemsList = inv.items.map(i => `• ${getItemPaidText(i)}`).join('<br>');
-            } else {
-                itemsList = (inv.itemsText || "").split(' | ').map(item => `• ${item}`).join('<br>');
-            }
-
-            return `<tr>
-                <td><span class="seq-num">${index + 1}</span></td>
-                <td style="font-weight:bold;">#${inv.id}</td>
-                <td>${inv.date ? inv.date.replace('T', ' ').replace('.000Z', '') : '-'}</td>
-                <td style="text-align:right; font-size:0.75rem;">${itemsList}</td>
-                <td>
-                    <button class="btn btn-purple" style="padding:3px 6px; font-size:0.72rem; margin:2px 0;" onclick="printSingleReceipt(${inv.id})">إيصال 🧾</button>
-                </td>
-            </tr>`;
-        }).join('');
-    }
-
-    function saveExpenseEntry() {
-        const date = document.getElementById('expDate').value;
-        const income = parseFloat(document.getElementById('expIncome').value) || 0;
-        const expense = parseFloat(document.getElementById('expExpense').value) || 0;
-        const notes = document.getElementById('expNotes').value.trim();
-
-        if (!date) return alert('اختر التاريخ!');
-
-        const expObj = { date: date, income: income, expense: expense, notes: notes };
-        expensesList.push(expObj);
-        syncToCloud("saveExpense", expObj);
-
-        alert('✅ تم حفظ اليومية وإرسالها للسحابة بنجاح!');
-        document.getElementById('expIncome').value = '0';
-        document.getElementById('expExpense').value = '0';
-        document.getElementById('expNotes').value = '';
-        renderExpensesReport();
-    }
-
-    function renderExpensesReport() {
-        const fromD = document.getElementById('expFromDate').value;
-        const toD = document.getElementById('expToDate').value;
-
-        let totalInc = 0, totalExp = 0;
-        const filtered = expensesList.filter(e => {
-            if (fromD && e.date < fromD) return false;
-            if (toD && e.date > toD) return false;
-            return true;
-        });
-
-        const tbody = document.getElementById('expensesTableBody');
-        if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="color:#7f8c8d;">لا توجد سجلات بعد</td></tr>';
-        } else {
-            tbody.innerHTML = filtered.map((e, idx) => {
-                totalInc += parseFloat(e.income || 0);
-                totalExp += parseFloat(e.expense || 0);
-                return `<tr>
-                    <td>${idx + 1}</td>
-                    <td>${e.date}</td>
-                    <td style="color:#27ae60; font-weight:bold;">${parseFloat(e.income||0).toFixed(2)} ج.م</td>
-                    <td style="color:#c0392b; font-weight:bold;">${parseFloat(e.expense||0).toFixed(2)} ج.م</td>
-                    <td>${e.notes || '-'}</td>
-                </tr>`;
-            }).join('');
-        }
-
-        document.getElementById('expTotalIncome').textContent = totalInc.toFixed(2) + ' ج.م';
-        document.getElementById('expTotalExpense').textContent = totalExp.toFixed(2) + ' ج.م';
-        document.getElementById('expNetBalance').textContent = (totalInc - totalExp).toFixed(2) + ' ج.م';
-    }
-
     function renderStockTable(filter = '') {
         const tbody = document.getElementById('stockTableBody');
         const matched = products.filter(i => i.n && i.n.toLowerCase().includes(filter.toLowerCase()));
         tbody.innerHTML = matched.map((i, index) => `
             <tr>
                 <td style="font-weight:bold;">${index + 1}</td>
-                <td style="text-align:right; font-weight:bold;">${i.n}</td>
-                <td style="font-weight:bold; color:${i.q > 3 ? '#27ae60' : '#e74c3c'}">${i.q} قطعة</td>
-                <td>${(i.p||0).toFixed(2)} ج.م</td>
-                <td>${((i.p||0) * 3).toFixed(2)} ج.م</td>
+                <td style="text-align:left; font-weight:bold;">${i.n}</td>
+                <td style="font-weight:bold; color:${i.q > 3 ? '#27ae60' : '#e74c3c'}">${i.q} pcs</td>
+                <td>${(i.p||0).toFixed(2)} EGP</td>
             </tr>
         `).join('');
     }
 
-    function addNewProductToSystem() {
-        const name = document.getElementById('newProdName').value.trim();
-        const price = parseFloat(document.getElementById('newProdPrice').value) || 0;
-        const qty = parseInt(document.getElementById('newProdQty').value) || 0;
-
-        if (!name) return alert('أدخل اسم المنتج!');
-        
-        const existing = products.find(p => p.n.toLowerCase() === name.toLowerCase());
-        if (existing) {
-            existing.p = price;
-            existing.q += qty;
-        } else {
-            products.push({ n: name, p: price, q: qty });
+    function navigateInvoice(direction) {
+        if (!savedInvoices || savedInvoices.length === 0) return alert('No invoices saved to navigate!');
+        if (direction === 'first') currentNavIndex = 0;
+        else if (direction === 'last') currentNavIndex = savedInvoices.length - 1;
+        else if (direction === 'prev') {
+            if (currentNavIndex <= 0) currentNavIndex = 0;
+            else currentNavIndex--;
         }
-        
-        syncToCloud("updateSingleProduct", { n: name, p: price, q: existing ? existing.q : qty });
-        alert(`تم شحن وتحديث المنتج (${name}) بنجاح!`);
-        document.getElementById('newProdName').value = '';
-    }
+        else if (direction === 'next') {
+            if (currentNavIndex >= savedInvoices.length - 1) currentNavIndex = savedInvoices.length - 1;
+            else currentNavIndex++;
+        }
 
-    function exportReportPDF() {
-        const element = document.getElementById('reportsPrintArea');
-        const opt = {
-            margin:       0.2,
-            filename:     `Anjum_Green_Pharmacy_Full_Report_${new Date().toISOString().slice(0,10)}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-        };
-        html2pdf().set(opt).from(element).save();
+        const inv = savedInvoices[currentNavIndex];
+        if (inv) {
+            document.getElementById('invNum').textContent = inv.id;
+            if (inv.date) document.getElementById('invoiceDate').value = inv.date.replace(' ', 'T').slice(0, 16);
+        }
     }
 </script>
 </body>
