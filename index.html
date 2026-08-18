@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anjum Green Pharmacy 2026</title>
     
-    <!-- إعدادات تحويل الصفحة إلى تطبيق (PWA) -->
     <meta name="theme-color" content="#1e3c72">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -71,7 +70,6 @@
 </head>
 <body>
 
-<!-- شاشة تسجيل الدخول الرئيسية -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-card">
         <h2 style="color:#1e3c72; margin-bottom:15px; font-size:1.2rem;">🔐 Anjum Green Pharmacy</h2>
@@ -80,7 +78,6 @@
     </div>
 </div>
 
-<!-- نافذة كلمات السر الحماية -->
 <div id="passwordModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-bottom:10px; color:#1e3c72;">🔐 أدخل كلمة السر</h3>
@@ -104,7 +101,7 @@
         <button class="tab-btn" onclick="showTab('reportsTab', event)">🔒 📊 التقارير والنسخ الاحتياطي</button>
     </div>
 
-    <!-- 1. تبويب البيع المباشر -->
+    <!-- 1. البيع المباشر -->
     <div id="salesTab" class="tab-content active">
         <div class="section-title">🛒 إنشاء وتعديل فاتورة بيع</div>
 
@@ -138,9 +135,9 @@
 
             <p style="font-size: 0.85rem; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 8px;">أدخل السعر اليدوي المباشر حسب العملة:</p>
             <div class="payment-grid">
-                <div class="pay-box"><label id="lblUSD">دولار ($)</label><input type="number" id="pUSD" value="0"></div>
-                <div class="pay-box"><label id="lblEUR">يورو (€)</label><input type="number" id="pEUR" value="0"></div>
-                <div class="pay-box"><label id="lblGBP">إسترليني (£)</label><input type="number" id="pGBP" value="0"></div>
+                <div class="pay-box"><label id="lblUSD">دولار ($ × 50)</label><input type="number" id="pUSD" value="0"></div>
+                <div class="pay-box"><label id="lblEUR">يورو (€ × 60)</label><input type="number" id="pEUR" value="0"></div>
+                <div class="pay-box"><label id="lblGBP">إسترليني (£ × 70)</label><input type="number" id="pGBP" value="0"></div>
                 <div class="pay-box"><label id="lblEGP">مصري (EGP)</label><input type="number" id="pEGP" value="0"></div>
                 <div class="pay-box" style="grid-column: span 2;"><label id="lblVISA">فيزا (Visa EGP)</label><input type="number" id="pVISA" value="0"></div>
             </div>
@@ -181,7 +178,7 @@
         <button class="btn btn-blue" style="margin-top: 15px; font-size: 1.1rem; padding: 12px;" onclick="saveInvoice()">حفظ وتقفيل الفاتورة والمزامنة 💾</button>
     </div>
 
-    <!-- 2. تبويب الإيرادات والمصروفات (EGP) -->
+    <!-- 2. الإيرادات والمصروفات -->
     <div id="expensesTab" class="tab-content">
         <div class="section-title">💵 تسجيل ومتابعة اليومية (الإيرادات والمصروفات بالجنيه المصري)</div>
         <div class="card" style="background:#f4f9f9;">
@@ -226,10 +223,10 @@
         </div>
     </div>
 
-    <!-- 3. تبويب المخزن -->
+    <!-- 3. المخزن -->
     <div id="stockTab" class="tab-content">
         <div class="section-title">📦 حالة وتفاصيل المخزون الحالي</div>
-        <input type="text" id="stockFilterInput" class="search-box" placeholder="فلترة المخزن باسم المنتج..." oninput="filterStockTable(this.value)">
+        <input type="text" id="stockFilterInput" class="search-box" placeholder="فلترة المخزن باسم المنتج..." oninput="renderStockTable(this.value)">
         <div id="stockPrintArea" style="max-height: 400px; overflow-y: auto;">
             <div class="table-responsive"><table>
                 <thead>
@@ -246,7 +243,7 @@
         </div>
     </div>
 
-    <!-- 4. تبويب إضافة مخزون -->
+    <!-- 4. إضافة مخزون -->
     <div id="addStockTab" class="tab-content">
         <div class="section-title">➕ إضافة منتج جديد تماماً (مربوط سحابياً)</div>
         <div class="card" style="background:#eef7fe;">
@@ -259,7 +256,7 @@
         </div>
     </div>
 
-    <!-- 5. تبويب التقارير والنسخ الاحتياطي -->
+    <!-- 5. التقارير -->
     <div id="reportsTab" class="tab-content">
         <div class="section-title">📊 تقارير المبيعات والأرشيف والنسخ الاحتياطي</div>
         <div class="date-filter card">
@@ -289,16 +286,17 @@
 </div>
 
 <script>
-    // رابط الـ Web App المأخوذ من صورتك مباشرة
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbysvvrVICAKXa-3f40U_iCCH_cmwS3qj921RIINwemHqP2RcIgSmzvGImKepbu14gjBlw/exec";
     const ENTRY_PASSWORD = "123";
     const ADMIN_PASSWORD = "852";
 
+    let RATES = { USD: 50, EUR: 60, GBP: 70, EGP: 1, VISA: 1 };
     let pendingPasswordCallback = null;
     let expensesList = [];
     let savedInvoices = [];
     let products = [];
     let invoiceItems = [];
+    let selectedProd = null;
     let invoiceCounter = 1001;
     let activeInvoiceId = 1001;
 
@@ -340,6 +338,15 @@
         }
     }
 
+    function promptRatesPassword() {
+        requestPasswordModal("⚙️ ضبط أسعار العملات", () => {
+            RATES.USD = parseFloat(prompt("💵 سعر صرف الدولار ($):", RATES.USD)) || RATES.USD;
+            RATES.EUR = parseFloat(prompt("💶 سعر صرف اليورو (€):", RATES.EUR)) || RATES.EUR;
+            RATES.GBP = parseFloat(prompt("💷 سعر صرف الإسترليني (£):", RATES.GBP)) || RATES.GBP;
+            alert('✅ تم تحديث أسعار الصرف بنجاح!');
+        });
+    }
+
     function showTab(tabId, evt) {
         if (tabId !== 'salesTab') {
             requestPasswordModal("🔐 أدخل كلمة السر للتصفح", () => {
@@ -378,6 +385,7 @@
 
                 prepareNewInvoice();
                 renderExpensesReport();
+                renderStockTable();
             }
         };
 
@@ -393,6 +401,159 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: actionType, data: data })
         });
+    }
+
+    /* أبحاث وإضافة المنتجات بالفاتورة */
+    function searchProduct() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const list = document.getElementById('searchResults');
+        if (!query) { list.style.display = 'none'; return; }
+
+        const matched = products.filter(item => item && item.n && item.n.toLowerCase().includes(query));
+        if (matched.length > 0) {
+            list.innerHTML = matched.map(i => {
+                const idx = products.indexOf(i);
+                return `<div class="result-item" onclick="pickProductIndex(${idx})">
+                    <span style="color:#1e3c72; font-weight:bold;">${i.n}</span>
+                    <span style="color:#27ae60; font-size:0.8rem;">(المتاح: ${i.q})</span>
+                </div>`;
+            }).join('');
+            list.style.display = 'block';
+        } else {
+            list.style.display = 'none';
+        }
+    }
+
+    function pickProductIndex(index) {
+        const p = products[index];
+        if (!p) return;
+        selectedProd = { name: p.n, comm: p.p, guide: p.p * 3, stock: p.q };
+
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('searchInput').value = p.n;
+        document.getElementById('prodName').textContent = p.n;
+        document.getElementById('stockQty').textContent = p.q;
+        document.getElementById('commPrice').textContent = (p.p || 0).toFixed(2);
+        document.getElementById('guidePrice').textContent = ((p.p || 0) * 3).toFixed(2);
+        document.getElementById('sellQty').value = 1;
+
+        ['pUSD', 'pEUR', 'pGBP', 'pEGP', 'pVISA'].forEach(id => document.getElementById(id).value = 0);
+        document.getElementById('productCard').style.display = 'block';
+    }
+
+    function addToInvoice() {
+        if (!selectedProd) return;
+        const qty = parseInt(document.getElementById('sellQty').value) || 1;
+        if (qty > selectedProd.stock) return alert('⚠️ الكمية غير متوفرة بالمخزن!');
+
+        const u = parseFloat(document.getElementById('pUSD').value) || 0;
+        const eu = parseFloat(document.getElementById('pEUR').value) || 0;
+        const g = parseFloat(document.getElementById('pGBP').value) || 0;
+        const eg = parseFloat(document.getElementById('pEGP').value) || 0;
+        const v = parseFloat(document.getElementById('pVISA').value) || 0;
+
+        const itemTotalEGP = (u * RATES.USD) + (eu * RATES.EUR) + (g * RATES.GBP) + (eg * RATES.EGP) + (v * RATES.VISA);
+
+        const pObj = products.find(item => item.n === selectedProd.name);
+        if (pObj) pObj.q -= qty;
+
+        const commTotal = selectedProd.comm * qty;
+
+        invoiceItems.push({
+            name: selectedProd.name,
+            qty: qty,
+            commTotal: commTotal,
+            sellTotal: itemTotalEGP,
+            netProfit: itemTotalEGP - commTotal,
+            usd: u, eur: eu, gbp: g, egp: eg, visa: v
+        });
+
+        renderInvoice();
+        document.getElementById('productCard').style.display = 'none';
+        document.getElementById('searchInput').value = '';
+    }
+
+    function getItemPaidText(item) {
+        if (!item) return '';
+        let paidParts = [];
+        if (item.usd > 0) paidParts.push(`${item.usd} $`);
+        if (item.eur > 0) paidParts.push(`${item.eur} €`);
+        if (item.gbp > 0) paidParts.push(`${item.gbp} £`);
+        if (item.egp > 0) paidParts.push(`${item.egp} ج.م`);
+        if (item.visa > 0) paidParts.push(`${item.visa} Visa`);
+
+        let paidStr = paidParts.length > 0 ? paidParts.join(" - ") : `${(item.sellTotal||0).toFixed(1)} ج.م`;
+        return `${item.name} | العدد: ${item.qty} | بيع: ${paidStr}`;
+    }
+
+    function renderInvoice() {
+        const tbody = document.getElementById('invoiceTableBody');
+        let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0, totalSellEGP = 0;
+
+        if (invoiceItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="color: #7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>';
+        } else {
+            tbody.innerHTML = invoiceItems.map((item, index) => {
+                sumUSD += parseFloat(item.usd || 0);
+                sumEUR += parseFloat(item.eur || 0);
+                sumGBP += parseFloat(item.gbp || 0);
+                sumEGP += parseFloat(item.egp || 0);
+                sumVISA += parseFloat(item.visa || 0);
+                totalSellEGP += parseFloat(item.sellTotal || 0);
+
+                return `<tr>
+                    <td style="font-weight:bold;">${index + 1}</td>
+                    <td style="font-weight:bold; text-align:right;">${item.name}</td>
+                    <td>${item.qty}</td>
+                    <td>${(item.commTotal||0).toFixed(2)} ج.م</td>
+                    <td>${getItemPaidText(item)}</td>
+                    <td style="color:#27ae60; font-weight:bold;">${(item.sellTotal||0).toFixed(2)} ج.م</td>
+                    <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="invoiceItems.splice(${index},1);renderInvoice();">حذف</button></td>
+                </tr>`;
+            }).join('');
+        }
+
+        document.getElementById('liveUSD').textContent = '$' + sumUSD.toFixed(2);
+        document.getElementById('liveEUR').textContent = '€' + sumEUR.toFixed(2);
+        document.getElementById('liveGBP').textContent = '£' + sumGBP.toFixed(2);
+        document.getElementById('liveEGP').textContent = sumEGP.toFixed(2) + ' ج.م';
+        document.getElementById('liveVISA').textContent = sumVISA.toFixed(2) + ' ج.م';
+        document.getElementById('liveTotalEGP').textContent = totalSellEGP.toFixed(2) + ' ج.م';
+    }
+
+    function saveInvoice() {
+        if (invoiceItems.length === 0) return alert('أضف أصناف للفاتورة أولاً!');
+        let itemsSummaryText = invoiceItems.map(i => getItemPaidText(i)).join(" | ");
+        const savedInv = {
+            id: activeInvoiceId,
+            date: document.getElementById('invoiceDate').value.replace('T', ' '),
+            items: invoiceItems,
+            itemsText: itemsSummaryText,
+            totalComm: invoiceItems.reduce((a,b)=>a+b.commTotal, 0),
+            totalEGP: invoiceItems.reduce((a,b)=>a+b.sellTotal, 0),
+            netProfit: invoiceItems.reduce((a,b)=>a+b.netProfit, 0)
+        };
+        savedInvoices.push(savedInv);
+        syncToCloud("saveInvoice", savedInv);
+
+        invoiceItems.forEach(i => {
+            const pObj = products.find(p => p.n === i.name);
+            if (pObj) syncToCloud("updateSingleProduct", pObj);
+        });
+
+        alert(`تم حفظ الفاتورة #${activeInvoiceId} بنجاح!`);
+        invoiceCounter++;
+        prepareNewInvoice();
+    }
+
+    function prepareNewInvoice() {
+        activeInvoiceId = invoiceCounter;
+        document.getElementById('invNum').textContent = activeInvoiceId;
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
+        invoiceItems = [];
+        renderInvoice();
     }
 
     /* اليومية والإيرادات والمصروفات */
@@ -448,67 +609,84 @@
         document.getElementById('expNetBalance').textContent = (totalInc - totalExp).toFixed(2) + ' ج.م';
     }
 
-    /* إدارة الفواتير والمخزن */
-    function prepareNewInvoice() {
-        activeInvoiceId = invoiceCounter;
-        document.getElementById('invNum').textContent = activeInvoiceId;
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
-        invoiceItems = [];
-        renderInvoice();
+    /* عرض وتصفية المخزن */
+    function renderStockTable(filter = '') {
+        const tbody = document.getElementById('stockTableBody');
+        const matched = products.filter(i => i.n && i.n.toLowerCase().includes(filter.toLowerCase()));
+        tbody.innerHTML = matched.map((i, index) => `
+            <tr>
+                <td style="font-weight:bold;">${index + 1}</td>
+                <td style="text-align:right; font-weight:bold;">${i.n}</td>
+                <td style="font-weight:bold; color:${i.q > 3 ? '#27ae60' : '#e74c3c'}">${i.q} قطعة</td>
+                <td>${(i.p||0).toFixed(2)} ج.م</td>
+                <td>${((i.p||0) * 3).toFixed(2)} ج.م</td>
+            </tr>
+        `).join('');
     }
 
-    function getItemPaidText(item) {
-        if (!item) return '';
-        let paidParts = [];
-        if (item.usd > 0) paidParts.push(`${item.usd} $`);
-        if (item.eur > 0) paidParts.push(`${item.eur} €`);
-        if (item.gbp > 0) paidParts.push(`${item.gbp} £`);
-        if (item.egp > 0) paidParts.push(`${item.egp} ج.م`);
-        if (item.visa > 0) paidParts.push(`${item.visa} Visa`);
+    function addNewProductToSystem() {
+        const name = document.getElementById('newProdName').value.trim();
+        const price = parseFloat(document.getElementById('newProdPrice').value) || 0;
+        const qty = parseInt(document.getElementById('newProdQty').value) || 0;
 
-        let paidStr = paidParts.length > 0 ? paidParts.join(" - ") : `${(item.sellTotal||0).toFixed(1)} ج.م`;
-        return `${item.name} | العدد: ${item.qty} | بيع: ${paidStr}`;
-    }
-
-    function renderInvoice() {
-        const tbody = document.getElementById('invoiceTableBody');
-        let sumEGP = 0;
-        if (invoiceItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="color:#7f8c8d;">لا توجد أصناف مضافة بعد</td></tr>';
+        if (!name) return alert('أدخل اسم المنتج!');
+        
+        const existing = products.find(p => p.n.toLowerCase() === name.toLowerCase());
+        if (existing) {
+            existing.p = price;
+            existing.q += qty;
         } else {
-            tbody.innerHTML = invoiceItems.map((item, idx) => {
-                sumEGP += item.sellTotal;
-                return `<tr>
-                    <td>${idx + 1}</td>
-                    <td>${item.name}</td>
-                    <td>${item.qty}</td>
-                    <td>${item.commTotal.toFixed(2)} ج.م</td>
-                    <td>${getItemPaidText(item)}</td>
-                    <td>${item.sellTotal.toFixed(2)} ج.م</td>
-                    <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="invoiceItems.splice(${idx},1);renderInvoice();">حذف</button></td>
-                </tr>`;
-            }).join('');
+            products.push({ n: name, p: price, q: qty });
         }
-        document.getElementById('liveTotalEGP').textContent = sumEGP.toFixed(2) + ' ج.م';
+        
+        syncToCloud("updateSingleProduct", { n: name, p: price, q: existing ? existing.q : qty });
+        alert(`تم شحن وتحديث المنتج (${name}) بنجاح!`);
+        document.getElementById('newProdName').value = '';
     }
 
-    function saveInvoice() {
-        if (invoiceItems.length === 0) return alert('أضف أصناف للفاتورة أولاً!');
-        let itemsSummaryText = invoiceItems.map(i => getItemPaidText(i)).join(" | ");
-        const savedInv = {
-            id: activeInvoiceId,
-            date: document.getElementById('invoiceDate').value.replace('T', ' '),
-            items: invoiceItems,
-            itemsText: itemsSummaryText,
-            totalEGP: invoiceItems.reduce((a,b)=>a+b.sellTotal, 0)
+    function generateReport() {
+        const fromD = document.getElementById('fromDate').value;
+        const toD = document.getElementById('toDate').value;
+
+        const filtered = savedInvoices.filter(inv => {
+            if (!inv.date) return true;
+            const invD = inv.date.slice(0, 10);
+            if (fromD && invD < fromD) return false;
+            if (toD && invD > toD) return false;
+            return true;
+        });
+
+        const tbody = document.getElementById('savedInvoicesBody');
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="color:#7f8c8d;">لا توجد فواتير محفوظة بعد</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = filtered.map((inv, index) => {
+            let itemsList = inv.items ? inv.items.map(i => getItemPaidText(i)).join('<br>') : inv.itemsText;
+            return `<tr>
+                <td>${index + 1}</td>
+                <td style="font-weight:bold;">#${inv.id}</td>
+                <td>${inv.date}</td>
+                <td style="text-align:right; font-size:0.75rem;">${itemsList}</td>
+                <td style="font-size:0.75rem;">${(inv.totalEGP||0).toFixed(2)} ج.م</td>
+                <td style="color:#27ae60; font-weight:bold;">${(inv.totalEGP||0).toFixed(2)} ج.م</td>
+                <td style="color:#8e44ad; font-weight:bold;">${(inv.netProfit||0).toFixed(2)} ج.م</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function exportReportPDF() {
+        const element = document.getElementById('reportsPrintArea');
+        const opt = {
+            margin:       0.2,
+            filename:     `Anjum_Green_Pharmacy_Full_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
-        savedInvoices.push(savedInv);
-        syncToCloud("saveInvoice", savedInv);
-        alert(`تم حفظ الفاتورة #${activeInvoiceId} بنجاح!`);
-        invoiceCounter++;
-        prepareNewInvoice();
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 </body>
