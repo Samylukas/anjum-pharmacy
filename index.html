@@ -9,7 +9,7 @@
     <style>
         * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
         html, body { width: 100%; overflow-x: hidden; background-color: #f0f2f5; padding: 8px; color: #333; }
-        .app-container { width: 100%; max-width: 980px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); box-sizing: border-box; }
+        .app-container { width: 100%; max-width: 980px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); box-sizing: border-box; position: relative; min-height: 95vh; padding-bottom: 40px; }
         h1 { text-align: center; color: #1e3c72; margin-bottom: 8px; font-size: 1.3rem; word-break: break-word; }
         
         .sync-status { text-align: center; font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; padding: 6px; border-radius: 6px; }
@@ -82,6 +82,8 @@
         .live-summary-item { background: rgba(255,255,255,0.12); padding: 5px; border-radius: 5px; }
         .live-summary-item span { display: block; color: #f1c40f; font-weight: bold; font-size: 0.85rem; margin-top: 2px; }
 
+        .footer-signature { text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e0e0e0; font-size: 0.75rem; color: #7f8c8d; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 4px; }
+
         @media print {
             body.printing-receipt * { visibility: hidden; }
             #receiptPrintSection, #receiptPrintSection * { visibility: visible; }
@@ -97,6 +99,7 @@
         <input type="text" id="entryUserInput" class="search-box" style="text-align:center; margin-bottom:10px;" placeholder="Username...">
         <input type="password" id="entryPassInput" class="search-box" style="text-align:center;" placeholder="Password..." onkeypress="if(event.key === 'Enter') validateEntryPassword()">
         <button class="btn btn-blue" onclick="validateEntryPassword()">Login System 🚀</button>
+        <div class="footer-signature" style="margin-top:15px; font-size:0.65rem;">✨ D&P by Samy Lukas , Powered By Gemini</div>
     </div>
 </div>
 
@@ -125,6 +128,7 @@
             <div style="color:#856404; font-size:0.85rem; font-weight:bold;">💡 Sync Options:</div>
             <button class="btn btn-blue" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="fetchCloudInvoicesData()">Sync Data 🔄</button>
             <button class="btn btn-orange" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="prepareNewInvoice()">New Invoice ➕</button>
+            <button class="btn btn-red" style="width: auto; margin: 0; font-size:0.8rem; padding:6px 12px;" onclick="clearCurrentInvoice()">Clear 🧹</button>
         </div>
 
         <div class="info-row" style="background: #eef7fe; padding: 10px; border-radius: 6px; align-items: center;">
@@ -393,6 +397,8 @@
             </tbody>
         </table></div>
     </div>
+
+    <div class="footer-signature">✨ D&P by Samy Lukas , Powered By Gemini</div>
 </div>
 
 <div id="receiptPrintSection"></div>
@@ -586,6 +592,27 @@
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('invoiceDate').value = now.toISOString().slice(0, 16);
         
+        invoiceItems = [];
+        renderInvoice();
+    }
+
+    function clearCurrentInvoice() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('productCard').style.display = 'none';
+        selectedProd = null;
+        
+        if (invoiceItems.length > 0) {
+            invoiceItems.forEach(item => {
+                const pObj = products.find(p => p.n === item.name);
+                if (pObj) {
+                    pObj.q += item.qty;
+                }
+            });
+            saveProductsToStorage();
+            renderStockTable();
+        }
+
         invoiceItems = [];
         renderInvoice();
     }
@@ -1171,10 +1198,10 @@
     function printStockTable() {
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>Print Inventory</title>');
-        win.document.write('<style>body{font-family:sans-serif;direction:ltr;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:11px;} th{background:#1e3c72;color:#fff;}</style>');
-        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0;">Inventory Details</h3><p>Date: ' + new Date().toLocaleString() + '</p><table><thead><tr><th>#</th><th>Product Name</th><th>Stock</th><th>Comm. Price</th><th>Min Price (×3)</th></tr></thead><tbody>');
-        products.forEach((i, idx) => { win.document.write(`<tr><td>${idx+1}</td><td style="text-align:left;">${i.n}</td><td>${i.q} units</td><td>${i.p.toFixed(2)} EGP</td><td>${(i.p*3).toFixed(2)} EGP</td></tr>`); });
-        win.document.write('</tbody></table></body></html>');
+        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:11px;} th{background:#1e3c72;color:#fff;}</style>');
+        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0;">جدول تفاصيل المخزون</h3><p>التاريخ: ' + new Date().toLocaleString() + '</p><table><thead><tr><th>م</th><th style="width:50%;">اسم المنتج</th><th>الكمية</th><th>السعر التجاري</th><th>الحد الأدنى</th></tr></thead><tbody>');
+        products.forEach((i, idx) => { win.document.write(`<tr><td>${idx+1}</td><td style="text-align:right;">${i.n}</td><td>${i.q} قطعة</td><td>${i.p.toFixed(2)} ج.م</td><td>${(i.p*3).toFixed(2)} ج.م</td></tr>`); });
+        win.document.write('</tbody></table><div style="text-align:center; margin-top:20px; font-size:10px; color:#7f8c8d;">✨ D&P by Samy Lukas , Powered By Gemini</div></body></html>');
         win.document.close();
         win.focus();
         setTimeout(() => win.print(), 300);
@@ -1230,6 +1257,7 @@
             <hr style="border-top:1px dashed #000; margin:6px 0;">
             <h4 style="text-align:right;">Total: ${inv.totalEGP.toFixed(2)} EGP</h4>
             <p style="font-size:9px; margin-top:10px;">Thank you for visiting us!</p>
+            <div style="font-size:8px; color:#555; margin-top:8px;">✨ D&P by Samy Lukas , Powered By Gemini</div>
         `;
 
         const printSec = document.getElementById('receiptPrintSection');
@@ -1281,13 +1309,13 @@
         });
 
         const win = window.open('', '', 'height=700,width=900');
-        win.document.write('<html><head><title>Print Report</title>');
-        win.document.write('<style>body{font-family:sans-serif;direction:ltr;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #333;padding:6px;font-weight:bold;}</style>');
-        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">Sales & Financial Report</h3><p>' + new Date().toLocaleString() + '</p><table><thead><tr><th>#</th><th>Invoice ID</th><th>Date</th><th>Items Details & Sellers</th><th>Comm Total</th><th>Sell (EGP)</th><th>Net Profit</th></tr></thead><tbody>');
+        win.document.write('<html><head><title>طباعة التقرير المالي</title>');
+        win.document.write('<style>body{font-family:sans-serif;direction:rtl;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #333;padding:6px;font-weight:bold;}</style>');
+        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">تقرير المبيعات والأرشيف المالي</h3><p>' + new Date().toLocaleString() + '</p><table><thead><tr><th style="width:30px;">م</th><th style="width:70px;">رقم الفاتورة</th><th style="width:90px;">التاريخ</th><th style="width:45%;">تفاصيل المنتجات والأسعار</th><th style="width:60px;">التجاري</th><th style="width:70px;">البيع (EGP)</th><th style="width:60px;">صافي الربح</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
             const itemsList = inv.items ? inv.items.map(i => getItemPaidText(i)).join(' | ') : cleanItemSummaryText(inv.itemsText).replace(/\(|\)/g, '');
-            win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td style="text-align:left;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
+            win.document.write(`<tr><td>${idx+1}</td><td>#${inv.id}</td><td>${inv.date?inv.date.replace('T',' ').replace('.000Z',''):''}</td><td style="text-align:right;">${itemsList}</td><td>${(inv.totalComm||0).toFixed(2)}</td><td>${(inv.totalEGP||0).toFixed(2)}</td><td>${(inv.netProfit||0).toFixed(2)}</td></tr>`);
         });
 
         win.document.write('</tbody></table>');
@@ -1296,14 +1324,14 @@
             <table class="totals-table" style="background:#ffffff; color:#333;">
                 <thead>
                     <tr style="background:#f8f9fa; color:#1e3c72;">
-                        <th>Total USD ($)</th>
-                        <th>Total EUR (€)</th>
-                        <th>Total GBP (£)</th>
-                        <th>Total EGP</th>
-                        <th>Total VISA</th>
-                        <th>Gross Sales</th>
-                        <th>Comm Total</th>
-                        <th>Net Profit</th>
+                        <th>إجمالي المقبوض ($)</th>
+                        <th>إجمالي المقبوض (€)</th>
+                        <th>إجمالي المقبوض (£)</th>
+                        <th>إجمالي المقبوض (EGP)</th>
+                        <th>إجمالي الفيزا (VISA)</th>
+                        <th>إجمالي المبيعات</th>
+                        <th>إجمالي التجاري</th>
+                        <th>صافي الربح</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1311,14 +1339,15 @@
                         <td>$${sumUSD.toFixed(2)}</td>
                         <td>€${sumEUR.toFixed(2)}</td>
                         <td>£${sumGBP.toFixed(2)}</td>
-                        <td>${sumEGP.toFixed(2)} EGP</td>
-                        <td>${sumVISA.toFixed(2)} EGP</td>
-                        <td style="color:#27ae60;">${totalSellEGPAll.toFixed(2)} EGP</td>
-                        <td style="color:#c0392b;">${totalCommAll.toFixed(2)} EGP</td>
-                        <td style="color:#8e44ad; font-size:11px;">${totalProfitAll.toFixed(2)} EGP</td>
+                        <td>${sumEGP.toFixed(2)} ج.م</td>
+                        <td>${sumVISA.toFixed(2)} ج.م</td>
+                        <td style="color:#27ae60;">${totalSellEGPAll.toFixed(2)} ج.م</td>
+                        <td style="color:#c0392b;">${totalCommAll.toFixed(2)} ج.م</td>
+                        <td style="color:#8e44ad; font-size:11px;">${totalProfitAll.toFixed(2)} ج.م</td>
                     </tr>
                 </tbody>
             </table>
+            <div style="text-align:center; margin-top:20px; font-size:10px; color:#7f8c8d;">✨ D&P by Samy Lukas , Powered By Gemini</div>
         </body></html>`);
 
         win.document.close();
@@ -1365,7 +1394,7 @@
 
         const element = document.createElement('div');
         element.style.padding = '15px';
-        element.style.direction = 'ltr';
+        element.style.direction = 'rtl';
         element.style.fontFamily = 'system-ui, sans-serif';
         element.style.background = '#ffffff';
 
@@ -1378,7 +1407,7 @@
                 </tr>
                 <tr>
                     <td style="text-align:center; border:none; padding:2px;">
-                        <div style="font-size:14px; font-weight:bold; color:#333;">Sales & Financial Report</div>
+                        <div style="font-size:14px; font-weight:bold; color:#333;">تقرير المبيعات والأرشيف المالي</div>
                     </td>
                 </tr>
                 <tr>
@@ -1391,14 +1420,14 @@
             <table style="width:100%; border-collapse:collapse; margin-bottom:15px; background:#fff;">
                 <thead>
                     <tr style="background:#1e3c72; color:#fff;">
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">#</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Invoice ID</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Date</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Details & Sellers</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Payments</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Comm Total</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Sell Total (EGP)</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Net Profit</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px; width:30px;">م</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px; width:70px;">رقم الفاتورة</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px; width:90px;">التاريخ</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">تفاصيل المنتجات والأسعار والبائع</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px; width:120px;">طرق الدفع</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px; width:65px;">التجاري</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px; width:75px;">البيع (EGP)</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px; width:65px;">صافي الربح</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1430,11 +1459,11 @@
                     <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px;">${index + 1}</td>
                     <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold;">#${inv.id}</td>
                     <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; white-space:nowrap;">${cleanDateStr}</td>
-                    <td style="border:1px solid #ccc; padding:4px; text-align:left; font-size:9px; line-height:1.3;">${itemsList}</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:right; font-size:9px; line-height:1.3;">${itemsList}</td>
                     <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:8px;">${payBreakdown}</td>
-                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px;">${(inv.totalComm || 0).toFixed(2)} EGP</td>
-                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#27ae60;">${(inv.totalEGP || 0).toFixed(2)} EGP</td>
-                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#8e44ad;">${(inv.netProfit || 0).toFixed(2)} EGP</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px;">${(inv.totalComm || 0).toFixed(2)} ج.م</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#27ae60;">${(inv.totalEGP || 0).toFixed(2)} ج.م</td>
+                    <td style="border:1px solid #ccc; padding:4px; text-align:center; font-size:9px; font-weight:bold; color:#8e44ad;">${(inv.netProfit || 0).toFixed(2)} ج.م</td>
                 </tr>
             `;
         });
@@ -1444,18 +1473,18 @@
             </table>
 
             <div style="margin-top:15px; background:#ffffff; color:#333; border:2px solid #1e3c72; border-radius:6px; padding:8px; page-break-inside: avoid;">
-                <h3 style="text-align:center; font-size:11px; margin:0 0 6px 0; color:#1e3c72;">💵 Financial Breakdown</h3>
+                <h3 style="text-align:center; font-size:11px; margin:0 0 6px 0; color:#1e3c72;">💵 التقرير المالي المجمع</h3>
                 <table style="width:100%; border-collapse:collapse; text-align:center; font-size:9px; background:#fff;">
                     <thead>
                         <tr style="background:#f0f4f8; color:#1e3c72;">
-                            <th style="border:1px solid #1e3c72; padding:4px;">Total USD ($)</th>
-                            <th style="border:1px solid #1e3c72; padding:4px;">Total EUR (€)</th>
-                            <th style="border:1px solid #1e3c72; padding:4px;">Total GBP (£)</th>
-                            <th style="border:1px solid #1e3c72; padding:4px;">Total EGP</th>
-                            <th style="border:1px solid #1e3c72; padding:4px;">Total VISA</th>
-                            <th style="border:1px solid #1e3c72; padding:4px;">Gross Sales</th>
-                            <th style="border:1px solid #1e3c72; padding:4px;">Comm Total</th>
-                            <th style="border:1px solid #1e3c72; padding:4px;">Net Profit</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي ($)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي (€)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي (£)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي (EGP)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي (VISA)</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">المبيعات الكلية</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">إجمالي التجاري</th>
+                            <th style="border:1px solid #1e3c72; padding:4px;">صافي الأرباح</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1463,15 +1492,16 @@
                             <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">$${sumUSD.toFixed(2)}</td>
                             <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">€${sumEUR.toFixed(2)}</td>
                             <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">£${sumGBP.toFixed(2)}</td>
-                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">${sumEGP.toFixed(2)} EGP</td>
-                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">${sumVISA.toFixed(2)} EGP</td>
-                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#27ae60;">${totalSellEGPAll.toFixed(2)} EGP</td>
-                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#c0392b;">${totalCommAll.toFixed(2)} EGP</td>
-                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#8e44ad;">${totalProfitAll.toFixed(2)} EGP</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">${sumEGP.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#2c3e50;">${sumVISA.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#27ae60;">${totalSellEGPAll.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#c0392b;">${totalCommAll.toFixed(2)} ج.م</td>
+                            <td style="border:1px solid #1e3c72; padding:5px; font-weight:bold; color:#8e44ad;">${totalProfitAll.toFixed(2)} ج.م</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            <div style="text-align:center; margin-top:20px; font-size:9px; color:#7f8c8d; direction:ltr;">✨ D&P by Samy Lukas , Powered By Gemini</div>
         `;
 
         element.innerHTML = htmlContent;
@@ -1605,7 +1635,6 @@
             totalComm += inv.totalComm || 0;
             netProfit += inv.netProfit || 0;
 
-            // Handle Struct Items or Parse Raw ItemsText for Cloud Invoices
             if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
                 inv.items.forEach(i => {
                     sumUSD += parseFloat(i.usd || 0);
@@ -1627,7 +1656,7 @@
 
                 let rawItems = inv.itemsText.split(' | ');
                 rawItems.forEach(raw => {
-                    let namePart = raw.split(' (العدد: ')[0] || raw.split(' (x')[0];
+                    let namePart = raw.split(' (العدد: ')[0] || raw.split(' (x')[0] || raw.split(' | ')[0];
                     let qtyPart = raw.match(/العدد:\s*(\d+)/) || raw.match(/Qty:\s*(\d+)/);
                     let qty = qtyPart ? parseInt(qtyPart[1]) : 1;
                     let cleanName = namePart.trim();
