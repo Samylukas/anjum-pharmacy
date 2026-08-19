@@ -1605,7 +1605,8 @@
             totalComm += inv.totalComm || 0;
             netProfit += inv.netProfit || 0;
 
-            if (inv.items && Array.isArray(inv.items)) {
+            // Handle Struct Items or Parse Raw ItemsText for Cloud Invoices
+            if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
                 inv.items.forEach(i => {
                     sumUSD += parseFloat(i.usd || 0);
                     sumEUR += parseFloat(i.eur || 0);
@@ -1613,14 +1614,28 @@
                     sumEGP += parseFloat(i.egp || 0);
                     sumVISA += parseFloat(i.visa || 0);
 
-                    productStats[i.name] = (productStats[i.name] || 0) + i.qty;
+                    if (i.name) {
+                        productStats[i.name] = (productStats[i.name] || 0) + (parseInt(i.qty) || 1);
+                    }
                 });
-            } else {
+            } else if (inv.itemsText) {
                 sumUSD += parseFloat(inv.usd || 0);
                 sumEUR += parseFloat(inv.eur || 0);
                 sumGBP += parseFloat(inv.gbp || 0);
                 sumEGP += parseFloat(inv.egp || 0);
                 sumVISA += parseFloat(inv.visa || 0);
+
+                let rawItems = inv.itemsText.split(' | ');
+                rawItems.forEach(raw => {
+                    let namePart = raw.split(' (العدد: ')[0] || raw.split(' (x')[0];
+                    let qtyPart = raw.match(/العدد:\s*(\d+)/) || raw.match(/Qty:\s*(\d+)/);
+                    let qty = qtyPart ? parseInt(qtyPart[1]) : 1;
+                    let cleanName = namePart.trim();
+
+                    if (cleanName) {
+                        productStats[cleanName] = (productStats[cleanName] || 0) + qty;
+                    }
+                });
             }
         });
 
