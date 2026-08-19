@@ -82,7 +82,6 @@
         .live-summary-item { background: rgba(255,255,255,0.12); padding: 5px; border-radius: 5px; }
         .live-summary-item span { display: block; color: #f1c40f; font-weight: bold; font-size: 0.85rem; margin-top: 2px; }
 
-        /* Thermal Printing Layout */
         @media print {
             body.printing-receipt * { visibility: hidden; }
             #receiptPrintSection, #receiptPrintSection * { visibility: visible; }
@@ -140,7 +139,7 @@
             <button class="btn btn-blue" onclick="navigateInvoice('last')">Last ⏭️</button>
         </div>
 
-        <input type="text" id="searchInput" class="search-box" style="margin-top:12px;" placeholder="Search by Product Name or Scan Barcode..." oninput="searchProduct()">
+        <input type="text" id="searchInput" class="search-box" style="margin-top:12px;" placeholder="Search Product Name or Scan Barcode..." oninput="searchProduct()">
         <div id="searchResults" class="results-list"></div>
 
         <div id="productCard" class="card" style="display:none;">
@@ -182,11 +181,12 @@
                     <th>Commercial Total</th>
                     <th>Payment Breakdown</th>
                     <th>Sell Total</th>
+                    <th>Seller</th>
                     <th style="width:60px;">Action</th>
                 </tr>
             </thead>
             <tbody id="invoiceTableBody">
-                <tr><td colspan="7" style="color: #7f8c8d;">No items added yet</td></tr>
+                <tr><td colspan="8" style="color: #7f8c8d;">No items added yet</td></tr>
             </tbody>
         </table></div>
 
@@ -243,7 +243,7 @@
                 <div class="pay-box"><label>New Product Name:</label><input type="text" id="newProdName" placeholder="Enter product name..."></div>
                 <div class="pay-box"><label>Commercial Price (EGP):</label><input type="number" id="newProdPrice" placeholder="0.00"></div>
                 <div class="pay-box"><label>Available Quantity:</label><input type="number" id="newProdQty" value="10"></div>
-                <div class="pay-box"><label>Barcode (Optional):</label><input type="text" id="newProdBarcode" placeholder="Scan or type barcode..."></div>
+                <div class="pay-box"><label>Barcode (Optional):</label><input type="text" id="newProdBarcode" placeholder="Scan barcode..."></div>
                 <div class="pay-box" style="grid-column: span 2;"><label>Expiry Date:</label><input type="date" id="newProdExpiry"></div>
             </div>
             <button class="btn btn-purple" style="margin-top: 12px;" onclick="addNewProductToSystem()">Save & Sync Product 📦</button>
@@ -410,6 +410,8 @@
 
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
+        
+        loadLocalUsers();
     });
 
     function updateOnlineStatus() {
@@ -424,20 +426,32 @@
         }
     }
 
+    function loadLocalUsers() {
+        const savedUsers = localStorage.getItem('anjum_local_users');
+        if (savedUsers) {
+            cloudUsers = JSON.parse(savedUsers);
+        } else {
+            cloudUsers = [
+                { username: 'admin', password: '852', role: 'Admin' },
+                { username: 'cashier', password: '123', role: 'Cashier' }
+            ];
+        }
+    }
+
+    function saveLocalUsers(users) {
+        if (users && users.length > 0) {
+            cloudUsers = users;
+            localStorage.setItem('anjum_local_users', JSON.stringify(users));
+        }
+    }
+
     function validateEntryPassword() {
         const usernameInput = document.getElementById('entryUserInput').value.trim().toLowerCase();
         const passwordInput = document.getElementById('entryPassInput').value.trim();
 
         if (!usernameInput || !passwordInput) return alert('Enter both username and password!');
 
-        // Check local storage or fetched users
         let matched = cloudUsers.find(u => u.username === usernameInput && u.password === passwordInput);
-        
-        // Default Local Fallback Users
-        if (!matched) {
-            if (usernameInput === 'admin' && passwordInput === '852') matched = { username: 'admin', role: 'Admin' };
-            if (usernameInput === 'cashier' && passwordInput === '123') matched = { username: 'cashier', role: 'Cashier' };
-        }
 
         if (matched) {
             currentUser = matched;
@@ -517,12 +531,17 @@
     let activeInvoiceId = 1001;
 
     function fetchCloudInvoicesData(callbackAfter) {
+        if (!navigator.onLine) {
+            if (callbackAfter) callbackAfter();
+            return;
+        }
+
         const oldScript = document.getElementById('cloudSyncScript');
         if (oldScript) oldScript.remove();
 
         window.handleCloudInvoicesResponse = function(resData) {
             if (resData && resData.status === "success") {
-                if (resData.users) cloudUsers = resData.users;
+                if (resData.users) saveLocalUsers(resData.users);
 
                 if (resData.products && resData.products.length > 0) {
                     products = resData.products;
@@ -591,6 +610,7 @@
                 commTotal: inv.totalComm || 0,
                 sellTotal: inv.totalEGP || 0,
                 netProfit: inv.netProfit || 0,
+                seller: currentUser ? currentUser.username : 'Unknown',
                 usd: inv.usd||0, eur: inv.eur||0, gbp: inv.gbp||0, egp: inv.egp||0, visa: inv.visa||0
             }];
         }
@@ -669,7 +689,6 @@
         const list = document.getElementById('searchResults');
         if (!query) { list.style.display = 'none'; return; }
         
-        // Exact Barcode Auto Match
         const barcodeMatched = products.find(item => item && item.barcode && item.barcode.toLowerCase() === query);
         if (barcodeMatched) {
             pickProductIndex(products.indexOf(barcodeMatched));
@@ -760,6 +779,7 @@
             commTotal: commTotal,
             sellTotal: sellTotal,
             netProfit: netProfit,
+            seller: currentUser ? currentUser.username : 'Unknown',
             usd: u, eur: eu, gbp: g, egp: eg, visa: v
         });
 
@@ -787,7 +807,7 @@
         let sumUSD = 0, sumEUR = 0, sumGBP = 0, sumEGP = 0, sumVISA = 0, totalSellEGP = 0;
 
         if (invoiceItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="color: #7f8c8d;">No items added yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="color: #7f8c8d;">No items added yet</td></tr>';
         } else {
             tbody.innerHTML = invoiceItems.map((item, index) => {
                 sumUSD += parseFloat(item.usd || 0);
@@ -805,6 +825,7 @@
                     <td>${(item.commTotal||0).toFixed(2)} EGP</td>
                     <td>$:${item.usd||0} | €:${item.eur||0} | £:${item.gbp||0} | EGP:${item.egp||0} | VISA:${item.visa||0}</td>
                     <td style="color:#27ae60; font-weight:bold;">${(item.sellTotal||0).toFixed(2)} EGP</td>
+                    <td style="font-weight:bold; color:#1e3c72;">${item.seller || 'Unknown'}</td>
                     <td><button class="btn btn-red" style="padding:2px 6px; font-size:0.7rem; margin:0;" onclick="removeInvoiceItem(${index})">Delete</button></td>
                 </tr>
             `;}).join('');
@@ -851,7 +872,7 @@
         if (item.visa > 0) paidParts.push(`${item.visa} Visa`);
 
         let paidStr = paidParts.length > 0 ? paidParts.join(" - ") : `${(item.sellTotal||0).toFixed(1)} EGP`;
-        return `${item.name} | Qty: ${item.qty} | Price: ${paidStr}`;
+        return `${item.name} | Qty: ${item.qty} | Price: ${paidStr} | Seller: ${item.seller || 'Unknown'}`;
     }
 
     function saveInvoice() {
@@ -895,7 +916,7 @@
         saveInvoicesToStorage();
         syncToCloud("saveInvoice", savedInv);
 
-        alert(`Invoice #${activeInvoiceId} saved and synced successfully! 💾☁️`);
+        alert(`Invoice #${activeInvoiceId} saved successfully! 💾☁️`);
         prepareNewInvoice();
         generateReport();
     }
@@ -1105,7 +1126,7 @@
                 let expDate = new Date(i.expiry);
                 let today = new Date();
                 let diffDays = (expDate - today) / (1000 * 60 * 60 * 24);
-                if (diffDays < 90) isExpiring = true; // Warning if expiring in < 3 months
+                if (diffDays < 90) isExpiring = true;
             }
 
             return `
@@ -1197,7 +1218,7 @@
 
         if (inv.items && Array.isArray(inv.items) && inv.items.length > 0) {
             inv.items.forEach(i => {
-                receiptHTML += `<tr><td style="text-align:left;">${i.name} (x${i.qty})</td><td style="text-align:right;">${i.sellTotal.toFixed(2)}</td></tr>`;
+                receiptHTML += `<tr><td style="text-align:left;">${i.name} (x${i.qty}) <br><small>By: ${i.seller || 'Unknown'}</small></td><td style="text-align:right;">${i.sellTotal.toFixed(2)}</td></tr>`;
             });
         } else {
             receiptHTML += `<tr><td colspan="2" style="text-align:left;">${cleanItemSummaryText(inv.itemsText)}</td></tr>`;
@@ -1262,7 +1283,7 @@
         const win = window.open('', '', 'height=700,width=900');
         win.document.write('<html><head><title>Print Report</title>');
         win.document.write('<style>body{font-family:sans-serif;direction:ltr;text-align:center;padding:15px;} table{width:100%;border-collapse:collapse;margin-top:10px;} th,td{border:1px solid #333;padding:6px;font-size:10px;} th{background:#1e3c72;color:#fff;} .totals-table{width:100%;margin-top:15px;border-collapse:collapse;} .totals-table td,.totals-table th{border:1px solid #333;padding:6px;font-weight:bold;}</style>');
-        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">Sales & Financial Report</h3><p>' + new Date().toLocaleString() + '</p><table><thead><tr><th>#</th><th>Invoice ID</th><th>Date</th><th>Items Details</th><th>Comm Total</th><th>Sell (EGP)</th><th>Net Profit</th></tr></thead><tbody>');
+        win.document.write('</head><body><h2 style="color:#1e3c72; margin-bottom:2px;">Anjum Green Pharmacy 🌿</h2><h3 style="margin-top:0; color:#333;">Sales & Financial Report</h3><p>' + new Date().toLocaleString() + '</p><table><thead><tr><th>#</th><th>Invoice ID</th><th>Date</th><th>Items Details & Sellers</th><th>Comm Total</th><th>Sell (EGP)</th><th>Net Profit</th></tr></thead><tbody>');
         
         filteredInvoices.forEach((inv, idx) => {
             const itemsList = inv.items ? inv.items.map(i => getItemPaidText(i)).join(' | ') : cleanItemSummaryText(inv.itemsText).replace(/\(|\)/g, '');
@@ -1373,7 +1394,7 @@
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">#</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">Invoice ID</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">Date</th>
-                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Details</th>
+                        <th style="border:1px solid #333; padding:5px; font-size:10px;">Details & Sellers</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">Payments</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">Comm Total</th>
                         <th style="border:1px solid #333; padding:5px; font-size:10px;">Sell Total (EGP)</th>
